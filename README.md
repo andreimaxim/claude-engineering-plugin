@@ -1,4 +1,4 @@
-# Skills
+# Engineering
 
 Reusable skills for software development.
 
@@ -8,7 +8,7 @@ Install with Claude Code:
 
 ```sh
 claude plugin marketplace add andreimaxim/skills
-claude plugin install andreimaxim-skills@andreimaxim
+claude plugin install engineering@andreimaxim
 ```
 
 ## Skills
@@ -17,5 +17,7 @@ claude plugin install andreimaxim-skills@andreimaxim
   implementation.
 - [implementing](skills/implementing/SKILL.md): implements agreed work through
   emergent scopes, architectural refinement, and independent verification.
+- [naming-things](skills/naming-things/SKILL.md): chooses names and terminology by
+  clarifying meaning, behavior, and reader context.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local development and validation.

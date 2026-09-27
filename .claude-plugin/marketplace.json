@@ -6,7 +6,7 @@
   },
   "plugins": [
     {
-      "name": "andreimaxim-skills",
+      "name": "engineering",
       "source": "./",
       "description": "A personal collection of agent skills."
     }

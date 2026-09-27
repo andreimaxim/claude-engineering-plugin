@@ -14,7 +14,7 @@ From the repository root, load the working copy for a Claude Code session:
 claude --plugin-dir .
 ```
 
-Invoke a skill with `/andreimaxim-skills:<skill-name>`. After editing, start a new
+Invoke a skill with `/engineering:<skill-name>`. After editing, start a new
 session or run `/reload-plugins` in Claude Code to load the changes.
 
 ## Validate and update
