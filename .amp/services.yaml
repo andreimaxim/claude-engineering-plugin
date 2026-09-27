@@ -1,0 +1,7 @@
+services:
+  evals:
+    command: cd evals && pnpm install --frozen-lockfile --silent && pnpm build && exec node src/cli.ts serve --port "$PORT"
+    health: /healthz
+    portal:
+      title: Skill evaluations
+      description: Per-skill comparisons and condition-masked calibration review. Drafts stay in your browser until you export them.

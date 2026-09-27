@@ -1,0 +1,22 @@
+{
+  "skill": "building-skills",
+  "name": "migration-rehearsal",
+  "version": 1,
+  "historicalId": "building-skills:2",
+  "status": { "kind": "runnable" },
+  "prompt": "Create a portable Agent Skill named rehearsing-data-migrations under skills/ from practice-notes.md. It will be used by the main coding agent in several hosts. Make it discoverable for substantial migration rehearsals, without turning routine schema edits into ceremonies. Preserve the operational distinctions in the notes while leaving tactics to an experienced agent. Produce and validate the artifact; don't run a migration or invent a surrounding project. All notes are synthetic and publishable.",
+  "input": { "kind": "files", "files": ["practice-notes.md"] },
+  "expected": "Authors outcome-focused, host-neutral guidance that preserves pre-change characterization, representative disposable data, independent review, main-agent accountability, and explicit production authority boundaries.",
+  "criteria": [
+    { "id": "metadata", "kind": "task", "text": "Creates skills/rehearsing-data-migrations/SKILL.md with matching valid metadata, plain activation cues, and a distinction from routine settled schema edits." },
+    { "id": "characterize-first", "kind": "task", "text": "Requires characterization to pass on the old behavior before migration, rather than treating tests first written afterward as preservation evidence." },
+    { "id": "data-and-authority", "kind": "task", "text": "Preserves disposable representative data, resumability/idempotency distinctions where material, and separate authorization for production writes." },
+    { "id": "review-ownership", "kind": "task", "text": "Keeps the main agent responsible for completion and supported corrections; an independent reviewer receives intent, constraints, actual changes, and evidence in fresh context, or the missing review is reported." },
+    { "id": "portable", "kind": "task", "text": "Avoids vendor-specific tool names, mandatory file/checklist quotas, and vague compression that erases conditions; resource and validation claims are accurate." }
+  ],
+  "historyPattern": "Compression must preserve decision-bearing constraints, and the coordinating agent retains ownership through independent review and correction.",
+  "versionNotes": [
+    "v1 input is verified identical to the pilot: its Git tree hash matches the recorded pre-agent tree f7f8aff2f7cb6b3986f342abba7748f0a7563d73.",
+    "Criterion kinds were added during the rebuild; prompt, input, and criterion text are unchanged."
+  ]
+}

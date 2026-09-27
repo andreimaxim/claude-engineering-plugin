@@ -1,0 +1,28 @@
+{
+  "skill": "implementing",
+  "name": "capture-unwind",
+  "version": 2,
+  "historicalId": "implementing:2",
+  "status": { "kind": "runnable" },
+  "prompt": "This checkout contains an intentionally seeded regression, not a claim of an upstream Rails bug. After a helper rescues an exception from a nested ActionView capture, surrounding output can be lost or mixed with the failed capture. Fix it and add regression tests. Preserve buffer identity, normal nesting, escaping, and exception propagation. Keep the repair in the responsibility that owns temporary capture state rather than changing callers or swallowing failures. Run relevant existing tests as well as your regression tests, and report verification limitations. See EVAL_ENVIRONMENT.md for the prepared component runtime.",
+  "input": { "kind": "repository", "repository": "rails", "overlay": "regression.patch", "runtime": true },
+  "expected": "Restores the previous raw buffer on every exit from capture, at the buffer owner, with independently checked nested/rescued exception behavior and no trust or propagation changes.",
+  "criteria": [
+    { "id": "held-back-checks", "kind": "task", "text": "Held-back checks pass for normal nesting, nested failure rescued by the caller, capture while an outer rescue is active, buffer identity, and escaping." },
+    { "id": "owner-repair", "kind": "task", "text": "Repairs temporary-buffer restoration at OutputBuffer#capture without modifying application callers, discarding surrounding content, or swallowing exceptions." },
+    { "id": "regression-test", "kind": "task", "text": "Adds a regression test with distinct outer and inner content that would fail on the seeded checkout, and runs relevant existing tests." },
+    { "id": "bounded", "kind": "task", "text": "Avoids unrelated buffer rewrites, global trust changes, and new generic lifecycle abstractions." },
+    { "id": "accurate-report", "kind": "task", "text": "The final report accurately describes executed verification and its limitations, and does not claim unperformed review." },
+    { "id": "independent-review", "kind": "process", "text": "Independent review is performed when available or explicitly reported as unmet." }
+  ],
+  "checks": [
+    { "kind": "repository-test", "id": "capture-unwind", "description": "Held-back checks for nested and rescued capture behavior", "path": "{case}/checks/capture_unwind_check.rb" },
+    { "kind": "repository-test", "id": "buffers-tests", "description": "Upstream ActionView buffer tests", "path": "actionview/test/buffers_test.rb" },
+    { "kind": "repository-test", "id": "capture-helper-tests", "description": "Upstream ActionView capture helper tests, including any the agent added", "path": "actionview/test/template/capture_helper_test.rb" }
+  ],
+  "historyPattern": "Repair a failure at its lifecycle owner while preserving surrounding scope and data; green easy-path tests are insufficient.",
+  "versionNotes": [
+    "v2 rebuilds the seeded regression overlay, the held-back check, and the Rails component runtime; the v1 overlay and check were not retained.",
+    "v2 splits the v1 report criterion into report accuracy (task) and independent-review disclosure (skill process)."
+  ]
+}

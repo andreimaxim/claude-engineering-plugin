@@ -1,0 +1,28 @@
+{
+  "skill": "implementing",
+  "name": "svg-elements",
+  "version": 2,
+  "historicalId": "implementing:1",
+  "status": { "kind": "runnable" },
+  "prompt": "Add support for tag.fe_gaussian_blur and tag.fe_component_transfer in ActionView, using SVG's feGaussianBlur and feComponentTransfer spelling. They should follow the existing SVG element behavior for empty calls, content, blocks, attributes, and escaping. Preserve existing HTML and custom-element behavior. Before changing production code, add and run focused characterization tests against the current implementation for representative existing tags; then implement the new support and verify it. Keep the change bounded. Report exactly what was verified and any unmet verification requirement. The component test command is documented in EVAL_ENVIRONMENT.md.",
+  "input": { "kind": "repository", "repository": "rails", "runtime": true },
+  "expected": "Extends existing element registration and the established tests without a replacement tag pipeline. Characterization runs before production edits; new behavior and unaffected HTML/escaping behavior pass independently executed checks.",
+  "criteria": [
+    { "id": "held-back-checks", "kind": "task", "text": "The held-back checks pass for both new elements, no-content/content/block calls, escaping, and unchanged HTML/custom-element behavior." },
+    { "id": "existing-owner", "kind": "task", "text": "Production changes reuse the existing SVG element-generation owner without a new configurable registry, wrapper, or replacement dispatch architecture." },
+    { "id": "characterization-first", "kind": "task", "text": "The tool trace shows newly added characterization tests running successfully before production edits, and verification after the change; a final claim alone is insufficient." },
+    { "id": "discriminating-tests", "kind": "task", "text": "Tests distinguish the new elements' behavior and escaping without one opaque aggregate assertion or redundant broad scenarios." },
+    { "id": "accurate-report", "kind": "task", "text": "The final report matches executed checks and delivery state." },
+    { "id": "independent-review", "kind": "process", "text": "Independent review is performed when available or explicitly reported as unmet; self-review is not called independent review." }
+  ],
+  "checks": [
+    { "kind": "repository-test", "id": "svg-elements", "description": "Held-back checks for the two new SVG elements and unchanged HTML/custom elements", "path": "{case}/checks/svg_elements_check.rb" },
+    { "kind": "repository-test", "id": "tag-helper-tests", "description": "Upstream ActionView tag helper tests, including any the agent added", "path": "actionview/test/template/tag_helper_test.rb" },
+    { "kind": "repository-test", "id": "capture-helper-tests", "description": "Upstream ActionView capture helper tests", "path": "actionview/test/template/capture_helper_test.rb" }
+  ],
+  "historyPattern": "Extend a fixed existing pipeline without configurability; establish characterization evidence before changing production behavior.",
+  "versionNotes": [
+    "v2 rebuilds the held-back check and the Rails component runtime; the v1 check file and runtime were not retained.",
+    "v2 splits the v1 report criterion: report accuracy is a task criterion; independent-review disclosure is a skill process criterion the shared prompt does not request."
+  ]
+}

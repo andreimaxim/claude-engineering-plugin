@@ -1,0 +1,26 @@
+{
+  "rails": {
+    "url": "https://github.com/rails/rails.git",
+    "commit": "33beb0a38db1c058123a8e3cc298cad918adfe32",
+    "ref": "v7.2.2.1",
+    "license": "MIT",
+    "toolchain": {
+      "description": "Ruby >= 3.1 with Bundler; a focused ActionView/ActionPack component runtime pinned to versions from Rails' own Gemfile.lock at this commit.",
+      "probes": [["ruby", "--version"], ["bundle", "--version"]],
+      "runtimeDir": "repositories/rails",
+      "install": ["bundle", "install"],
+      "verify": ["bundle", "check"],
+      "env": {
+        "BUNDLE_GEMFILE": "{runtime}/Gemfile",
+        "BUNDLE_PATH": "{toolchainDir}",
+        "BUNDLE_FROZEN": "true"
+      },
+      "testCommand": [
+        "bundle", "exec", "ruby",
+        "-Iactivesupport/lib", "-Iactionview/lib", "-Iactionpack/lib", "-Iactivemodel/lib",
+        "-Iactionview/test", "-Iactionpack/test"
+      ],
+      "agentNotes": "This is a focused component runtime for ActionView, ActionPack, ActiveModel, and ActiveSupport tests, not Rails' complete development Gemfile. Gems are preinstalled and frozen; do not install others. Run a test file or a script from the checkout root with the checkout's load paths:\n\n```sh\nbundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test <test-or-script.rb>\n```\n\nBUNDLE_GEMFILE, BUNDLE_PATH, and BUNDLE_FROZEN are already set in the environment."
+    }
+  }
+}

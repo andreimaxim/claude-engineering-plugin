@@ -1,0 +1,22 @@
+{
+  "skill": "shaping",
+  "name": "request-completion-event",
+  "version": 2,
+  "historicalId": "shaping:3",
+  "status": { "kind": "runnable" },
+  "prompt": "We run an application on the Rails version in this checkout. Shape an application integration that emits one JSON completion record for each controller action: request ID, controller, action, HTTP status, elapsed milliseconds, and exception class when there is one. Our existing APM and Rails log subscribers must keep working. Request parameters, headers, and exception messages must not be exported. Find the existing event and lifecycle owners in this checkout and propose the smallest useful integration, including normal and exceptional behavior and a way to verify it. This is a design discussion, not permission to implement or change logging dependencies.",
+  "input": { "kind": "repository", "repository": "rails", "runtime": true },
+  "expected": "Uses process_action.action_controller as the existing completion boundary and proposes a bounded application subscriber, with correct field provenance, event timing, exception handling, and an allowlist rather than wholesale payload export.",
+  "criteria": [
+    { "id": "grounded", "kind": "task", "text": "Grounds the design in ActionController::Instrumentation and ActiveSupport::Notifications rather than assuming an API from a different Rails version." },
+    { "id": "one-completion", "kind": "task", "text": "Uses one completion notification, not start plus finish records, and preserves existing APM and log subscribers." },
+    { "id": "field-provenance", "kind": "task", "text": "Explains how request ID, status, duration in milliseconds, and exception class are obtained, including the exceptional path; does not invent payload[:request_id] as an existing field without adding it explicitly." },
+    { "id": "allowlist", "kind": "task", "text": "Exports only the requested fields, excluding request objects, params, headers, and exception messages; any lifecycle/context cleanup has a clear owner." },
+    { "id": "reload-and-tests", "kind": "task", "text": "Addresses duplicate subscriber registration during application reload and gives observable normal/error tests without replacing the logging architecture." },
+    { "id": "bounded", "kind": "task", "text": "Leaves the repository unchanged, keeps unverified delivery guarantees conditional, and does not turn exclusions into unsettled requirements." }
+  ],
+  "historyPattern": "Extend an existing event lifecycle without replacing working instrumentation or hiding ownership behind a generic wrapper.",
+  "versionNotes": [
+    "v2 rebuilds the Rails component runtime and EVAL_ENVIRONMENT.md; the v1 harness files were not retained."
+  ]
+}

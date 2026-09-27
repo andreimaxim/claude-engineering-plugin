@@ -1,0 +1,21 @@
+{
+  "skill": "explaining-code",
+  "name": "notification-exception",
+  "version": 2,
+  "historicalId": "explaining-code:2",
+  "status": { "kind": "runnable" },
+  "prompt": "In this checkout, what can a subscriber to process_action.action_controller observe when an action raises? Explain the path from the controller action to the subscriber, including status, exception metadata, timing, and whether the exception continues propagating. Distinguish an action failure from a subscriber itself raising. Keep it grounded in the code. I am asking how this works, not for an observability redesign. Do not edit files.",
+  "input": { "kind": "repository", "repository": "rails", "runtime": true },
+  "expected": "Explains controller status assignment, Instrumenter exception metadata and ensured completion, subscriber notification, propagation, and the separate subscriber-error path with appropriate limits.",
+  "criteria": [
+    { "id": "traces-owners", "kind": "task", "text": "Traces ActionController::Instrumentation, Notifications::Instrumenter, and notification delivery rather than inferring everything from an event name." },
+    { "id": "payload-fields", "kind": "task", "text": "Distinguishes payload[:status] from payload[:exception] and payload[:exception_object], including the class/message pair and original object." },
+    { "id": "timing-propagation", "kind": "task", "text": "Explains that the completion event is finished on failure with elapsed timing and the controller error is re-raised; HTTP error rendering occurs outside this method." },
+    { "id": "subscriber-errors", "kind": "task", "text": "Separately explains subscriber exceptions and avoids promising they cannot affect the caller or mask an action error when notification finishing raises." },
+    { "id": "behavior-first", "kind": "task", "text": "Uses clear behavior-first prose, does not add an equal-weight telemetry-improvement report, and leaves the repository unchanged." }
+  ],
+  "historyPattern": "Keep conditions and distinct fields precise, and do not let optional observability advice displace the explanation.",
+  "versionNotes": [
+    "v2 rebuilds the Rails component runtime and EVAL_ENVIRONMENT.md; the v1 harness files were not retained."
+  ]
+}

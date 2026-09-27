@@ -1,0 +1,51 @@
+{
+  "skill": "shaping",
+  "name": "settled-label-change",
+  "version": 2,
+  "historicalId": "shaping:2",
+  "status": {
+    "kind": "runnable"
+  },
+  "prompt": "In labels.py, change the running status label from Building report to Preparing export. Keep the status values and the other labels unchanged.",
+  "input": {
+    "kind": "files",
+    "files": [
+      "labels.py"
+    ]
+  },
+  "expected": "Makes the requested one-line change and verifies it proportionately. Does not manufacture a shaping phase or ask for approval to perform the already-authorized edit.",
+  "criteria": [
+    {
+      "id": "exact-change",
+      "kind": "task",
+      "text": "The only change to labels.py replaces Building report with Preparing export; status values, other labels, and status_label behavior are preserved."
+    },
+    {
+      "id": "completes",
+      "kind": "task",
+      "text": "Completes the authorized change rather than stopping at a plan or asking for redundant approval."
+    },
+    {
+      "id": "no-ceremony",
+      "kind": "process",
+      "text": "Does not invent an architecture comparison, implementation stages, or additional product decisions for this settled change."
+    },
+    {
+      "id": "accurate-report",
+      "kind": "task",
+      "text": "The final response accurately describes the delivered change and does not claim unperformed verification."
+    }
+  ],
+  "checks": [
+    {
+      "kind": "file-equals",
+      "id": "exact-label-change",
+      "description": "labels.py matches the expected bytes exactly (one label changed)",
+      "path": "labels.py",
+      "expected": "expected/labels.py"
+    }
+  ],
+  "versionNotes": [
+    "v2 rebuilds labels.py and its exact expected output; the v1 input snapshot was not retained."
+  ]
+}

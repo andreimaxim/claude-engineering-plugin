@@ -1,0 +1,14 @@
+diff --git a/actionview/lib/action_view/buffers.rb b/actionview/lib/action_view/buffers.rb
+--- a/actionview/lib/action_view/buffers.rb
++++ b/actionview/lib/action_view/buffers.rb
+@@ -73,9 +73,8 @@ def capture(*args)
+       new_buffer = +""
+       old_buffer, @raw_buffer = @raw_buffer, new_buffer
+       yield(*args)
+-      new_buffer.html_safe
+-    ensure
+       @raw_buffer = old_buffer
++      new_buffer.html_safe
+     end
+ 
+     def ==(other)

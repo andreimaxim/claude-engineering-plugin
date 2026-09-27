@@ -17,6 +17,39 @@ claude --plugin-dir .
 Invoke a skill with `/engineering:<skill-name>`. After editing, start a new
 session or run `/reload-plugins` in Claude Code to load the changes.
 
+## Evaluate behavior
+
+The [evaluation suite](evals/README.md) runs paired skill/no-supplied-skill
+comparisons on versioned cases, including tasks in pinned public repositories, and
+serves a comparison and condition-masked review app. Its design and fixed
+requirements are in [the plan](evals/PLAN.md). Amp is the exercised host; Claude Code
+is the primary target, with a subscription-login replay path that has not yet been
+exercised. Don't change a skill to improve its score on cases it has already seen.
+Behavioral evaluations complement the packaging checks below; they do not replace
+them.
+
+## Work in an Amp orb
+
+The executable `.agents/setup` prepares the evaluation environment. It uses the
+orb's Node 24+ and pnpm, installs missing Ruby/Bundler build prerequisites and the
+stable Claude Code CLI, installs the locked evaluation dependencies, caches the
+pinned Rails source and runtime outside this repository, and builds the review app.
+It is safe to rerun from the repository root:
+
+```sh
+.agents/setup
+amp orb services ensure
+```
+
+The second command starts the supervised app declared in `.amp/services.yaml` and
+prints its portal URL. No database or resume hook is needed. Setup does not log in
+to agent hosts, run model evaluations, or copy private judgments and A/B keys into
+snapshots. Supply runtime credentials separately, following the
+[evaluation guide](evals/README.md#claude-code-replay).
+
+Setup changes take effect in future orbs after they reach the project's default
+branch. Existing orbs can run the script directly.
+
 ## Validate and update
 
 Run these checks before submitting changes:

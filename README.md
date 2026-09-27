@@ -68,6 +68,14 @@ Prefer arrangements that prevent likely mistakes or make them immediately appare
 rather than relying on the agent to remember warnings. Use the simplest effective
 safeguard for the failure mode.
 
+## Evaluate the skills
+
+The [TypeScript evaluation suite and review app](evals/README.md) compare actual
+answers and changes with and without supplied skill guidance. Use versioned cases,
+recorded execution evidence, and condition-masked human reviews to assess future
+skill revisions. Task correctness, process requirements, and reviewer preference
+remain separate; the initial pilot is not evidence of coding uplift.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local development and validation.

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+step() {
+  local label="$1" started=$SECONDS
+  shift
+  printf '\n==> %s\n' "$label"
+  "$@"
+  printf 'Completed in %ss\n' "$((SECONDS - started))"
+}
+
+# Amp's Debian orb image supplies Node, pnpm, Git, curl, and agent-browser.
+node -e 'if (Number(process.versions.node.split(".")[0]) < 24) throw new Error("The eval suite needs Node 24 or newer")'
+pnpm --version
+
+missing=()
+for package in ruby ruby-dev ruby-bundler build-essential pkg-config; do
+  if [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" != 'install ok installed' ]]; then
+    missing+=("$package")
+  fi
+done
+if ((${#missing[@]})); then
+  step 'Refresh package indexes' sudo -n apt-get update
+  step 'Install Ruby and native-extension build tools' sudo -n env DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --no-install-recommends "${missing[@]}"
+fi
+ruby -e 'abort "Rails fixtures need Ruby 3.1 or newer" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.1")'
+bundle --version
+
+# Install the client only. Never authenticate or launch model runs in a snapshot.
+export PATH="$HOME/.local/bin:$PATH"
+if ! command -v claude >/dev/null 2>&1; then
+  installer="$(mktemp)"
+  trap 'rm -f -- "$installer"' EXIT
+  step 'Download the official Claude Code installer' curl --fail --silent --show-error --location \
+    https://claude.ai/install.sh --output "$installer"
+  step 'Install Claude Code (stable)' bash "$installer" stable
+fi
+claude --version
+
+step 'Install locked TypeScript dependencies' pnpm --dir "$repo_root/evals" install --frozen-lockfile
+step 'Cache pinned Rails source and runtime outside the repository' pnpm --dir "$repo_root/evals" evals fetch rails
+step 'Build the evaluation app' pnpm --dir "$repo_root/evals" build
+
+printf '\nSetup ready. Start the declared portal with: amp orb services ensure\n'
+printf 'Agent authentication and private review data are not provisioned by setup.\n'

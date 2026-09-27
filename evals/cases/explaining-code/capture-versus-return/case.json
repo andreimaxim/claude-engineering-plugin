@@ -1,0 +1,21 @@
+{
+  "skill": "explaining-code",
+  "name": "capture-versus-return",
+  "version": 2,
+  "historicalId": "explaining-code:1",
+  "status": { "kind": "runnable" },
+  "prompt": "Explain how ActionView capture chooses between text appended to the output buffer and the Ruby block's return value in this checkout. A teammate thinks capture simply returns yield. Show a small Ruby example that distinguishes the two, explain which strings are escaped, and say what happens to surrounding output if a nested capture raises. I need a precise mental model, not an implementation change or an inventory of Rails files.",
+  "input": { "kind": "repository", "repository": "rails", "runtime": true },
+  "expected": "Explains output precedence, the output-buffer identity case, plain strings versus trusted buffers, and exception-safe restoration through the real owners; examples have correct observable values.",
+  "criteria": [
+    { "id": "corrects-model", "kind": "task", "text": "Corrects the yield-only model and shows an asymmetric example where appended output and returned text differ." },
+    { "id": "blank-vs-identity", "kind": "task", "text": "Preserves the distinction between a blank captured buffer and a nonblank one, including the special case where the returned object is the current output buffer." },
+    { "id": "escaping", "kind": "task", "text": "Explains that ordinary String return values are escaped, SafeBuffer values are retained, OutputBuffer values convert to strings, and non-string return values can yield nil." },
+    { "id": "restoration", "kind": "task", "text": "Traces restoration to OutputBuffer#capture's ensure, explains nesting and exception propagation, and does not claim the helper swallows an exception." },
+    { "id": "behavior-first", "kind": "task", "text": "Leads with behavior, uses correct Rails names and Ruby examples, stays focused on the question, and leaves the repository unchanged." }
+  ],
+  "historyPattern": "Explain the observable behavior and its conditions, not a tour of files or supporting mechanisms.",
+  "versionNotes": [
+    "v2 rebuilds the Rails component runtime and EVAL_ENVIRONMENT.md so examples can be executed; the v1 harness files were not retained."
+  ]
+}

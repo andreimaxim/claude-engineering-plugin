@@ -1,0 +1,810 @@
+{
+  "id": "20260927-1942-amp-lym",
+  "title": "Amp high: first rebuilt pair batch (2 cases)",
+  "kind": "batch",
+  "summary": "4 executed run(s) across 2 case(s), 1 repetition(s) per condition.",
+  "limitations": [
+    "Configuration isolation, not an operating-system sandbox: agents could read any file the operator's user can read. Tool inputs that referenced outside paths are listed per run (heuristic).",
+    "Host system instructions were present in both conditions; the comparison isolates the supplied skill, not an instruction-free baseline.",
+    "Grades are model-assisted rubric judgments, not human calibration. Checks were executed by the harness after each run.",
+    "Order seed 988704495 randomizes condition order only; it is not a model-sampling seed.",
+    "The host synced account-level skills or plugins into the isolated home (listed per run). The skill tool was not enabled, but their presence is recorded rather than assumed harmless."
+  ],
+  "createdAt": "2026-09-27T19:42:37.970Z",
+  "requested": {
+    "host": "amp",
+    "mode": "high",
+    "model": "gpt-6-astra",
+    "effort": null,
+    "tools": [
+      "apply_patch",
+      "shell_command",
+      "shell_command_kill",
+      "shell_command_status"
+    ]
+  },
+  "hostVersion": "0.0.1790524853-gfa9fda",
+  "repetitions": 1,
+  "orderSeed": 988704495,
+  "harness": "d20dc6a3dbc5 (dirty), source c7e74d91cf55",
+  "skillsRevision": "d20dc6a3dbc5",
+  "attestation": {
+    "statement": "Agent-reviewed during the initial build, before any human attestation: prompts, the synthetic context.md, the public Rails v7.2.2.1 checkout and seeded overlay, answers, diffs, check output, action summaries, and grades. No private code, customer data, or thread identifiers; account tool names are withheld. A human should re-attest before relying on it.",
+    "at": "2026-09-27T19:56:18.620Z"
+  },
+  "cases": [
+    {
+      "key": "shaping/background-export@v1",
+      "skill": "shaping",
+      "name": "background-export",
+      "version": 1,
+      "historicalId": "shaping:1",
+      "prompt": "Exports time out. I was thinking we should add a Redis queue and generate them in the background. Use context.md to shape the smallest useful solution before we implement anything. Keep the existing export contents and access rules.",
+      "expected": "Proposes a bounded background-export direction grounded in the existing job infrastructure. Preserves click-time contents and requester-only access, addresses retried execution, and distinguishes the queue suggestion from a binding requirement. Produces advice, not an implementation.",
+      "criteria": [
+        {
+          "id": "outcome-framing",
+          "kind": "task",
+          "text": "Frames the outcome as completing exports without the HTTP timeout, rather than installing Redis as the required outcome."
+        },
+        {
+          "id": "existing-runner",
+          "kind": "task",
+          "text": "Considers the existing durable JobRunner before proposing another queue, with a concrete reason for the chosen direction."
+        },
+        {
+          "id": "click-time-snapshot",
+          "kind": "task",
+          "text": "Explains that reading current orders in the later worker changes the exported row set or field values; proposes preserving a durable click-time snapshot or explicitly flags that mechanism as an unresolved requirement."
+        },
+        {
+          "id": "requester-access",
+          "kind": "task",
+          "text": "Preserves requester-only download access and recognizes the supplied behavior after workspace membership is revoked."
+        },
+        {
+          "id": "repeated-delivery",
+          "kind": "task",
+          "text": "Accounts for JobRunner delivering a job more than once, including a crash between uploading the result and recording completion, without promising exactly-once execution."
+        },
+        {
+          "id": "observable-success",
+          "kind": "process",
+          "text": "Provides observable success conditions for the relevant boundaries, not merely a list of architecture components or work stages."
+        },
+        {
+          "id": "bounded",
+          "kind": "task",
+          "text": "Leaves context.md unchanged, does not implement the feature, and does not invent a deadline, throughput target, or mandatory new infrastructure."
+        }
+      ],
+      "historyPattern": null,
+      "context": [
+        {
+          "kind": "file",
+          "path": "context.md",
+          "content": "# Existing export behavior\n\n- An authenticated workspace member requests a CSV of orders matching a filter.\n- The request reads the rows in one database snapshot. Both the row set and field\n  values reflect that point in the request, not a later moment.\n- Orders can be edited or deleted afterward. There is no row-version history.\n- Fetching the rows normally takes less than one second. CSV formatting and\n  compression take up to 90 seconds; the HTTP gateway times out after 30 seconds.\n- Completed files go to private object storage. The application checks the\n  requesting user's identity and current workspace membership on every download.\n  Other workspace members cannot download the file. A requester whose membership\n  was revoked cannot download it either.\n- CSV columns and filter semantics must remain unchanged.\n\n# Existing infrastructure\n\n- The application already has a database-backed JobRunner used by nightly reports.\n- Enqueued jobs survive application restarts. Workers retry after crashes, so a\n  handler can run more than once, including after its external effects succeeded.\n- A worker can upload an object and crash before recording success in the database.\n- Object storage supports replacing an object at a chosen key. Objects remain\n  private unless the application explicitly grants access.\n- Jobs can reference durable database rows. The job payload cannot retain an open\n  request transaction or its database snapshot across a process restart.\n- Redis is not currently deployed. No new infrastructure has been approved.\n\n# Scope\n\nThis request is for a proposed solution, not implementation. No traffic target,\ndeadline, export-size policy, or new notification behavior has been agreed.\n",
+          "provenance": "Case input, v1"
+        }
+      ]
+    },
+    {
+      "key": "implementing/capture-unwind@v2",
+      "skill": "implementing",
+      "name": "capture-unwind",
+      "version": 2,
+      "historicalId": "implementing:2",
+      "prompt": "This checkout contains an intentionally seeded regression, not a claim of an upstream Rails bug. After a helper rescues an exception from a nested ActionView capture, surrounding output can be lost or mixed with the failed capture. Fix it and add regression tests. Preserve buffer identity, normal nesting, escaping, and exception propagation. Keep the repair in the responsibility that owns temporary capture state rather than changing callers or swallowing failures. Run relevant existing tests as well as your regression tests, and report verification limitations. See EVAL_ENVIRONMENT.md for the prepared component runtime.",
+      "expected": "Restores the previous raw buffer on every exit from capture, at the buffer owner, with independently checked nested/rescued exception behavior and no trust or propagation changes.",
+      "criteria": [
+        {
+          "id": "held-back-checks",
+          "kind": "task",
+          "text": "Held-back checks pass for normal nesting, nested failure rescued by the caller, capture while an outer rescue is active, buffer identity, and escaping."
+        },
+        {
+          "id": "owner-repair",
+          "kind": "task",
+          "text": "Repairs temporary-buffer restoration at OutputBuffer#capture without modifying application callers, discarding surrounding content, or swallowing exceptions."
+        },
+        {
+          "id": "regression-test",
+          "kind": "task",
+          "text": "Adds a regression test with distinct outer and inner content that would fail on the seeded checkout, and runs relevant existing tests."
+        },
+        {
+          "id": "bounded",
+          "kind": "task",
+          "text": "Avoids unrelated buffer rewrites, global trust changes, and new generic lifecycle abstractions."
+        },
+        {
+          "id": "accurate-report",
+          "kind": "task",
+          "text": "The final report accurately describes executed verification and its limitations, and does not claim unperformed review."
+        },
+        {
+          "id": "independent-review",
+          "kind": "process",
+          "text": "Independent review is performed when available or explicitly reported as unmet."
+        }
+      ],
+      "historyPattern": "Repair a failure at its lifecycle owner while preserving surrounding scope and data; green easy-path tests are insufficient.",
+      "context": [
+        {
+          "kind": "repository",
+          "name": "rails",
+          "url": "https://github.com/rails/rails.git",
+          "ref": "v7.2.2.1",
+          "commit": "33beb0a38db1c058123a8e3cc298cad918adfe32",
+          "provenance": "Fresh checkout of the pinned public commit"
+        },
+        {
+          "kind": "patch",
+          "path": "regression.patch",
+          "content": "diff --git a/actionview/lib/action_view/buffers.rb b/actionview/lib/action_view/buffers.rb\n--- a/actionview/lib/action_view/buffers.rb\n+++ b/actionview/lib/action_view/buffers.rb\n@@ -73,9 +73,8 @@ def capture(*args)\n       new_buffer = +\"\"\n       old_buffer, @raw_buffer = @raw_buffer, new_buffer\n       yield(*args)\n-      new_buffer.html_safe\n-    ensure\n       @raw_buffer = old_buffer\n+      new_buffer.html_safe\n     end\n \n     def ==(other)\n",
+          "provenance": "Seeded before the agent started (part of the case input)"
+        },
+        {
+          "kind": "file",
+          "path": "EVAL_ENVIRONMENT.md",
+          "content": "# Evaluation environment\n\nThis is a focused component runtime for ActionView, ActionPack, ActiveModel, and ActiveSupport tests, not Rails' complete development Gemfile. Gems are preinstalled and frozen; do not install others. Run a test file or a script from the checkout root with the checkout's load paths:\n\n```sh\nbundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test <test-or-script.rb>\n```\n\nBUNDLE_GEMFILE, BUNDLE_PATH, and BUNDLE_FROZEN are already set in the environment.\n",
+          "provenance": "Written by the harness into the checkout"
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "shaping.background-export.v1.r1.without-skill",
+      "caseKey": "shaping/background-export@v1",
+      "pair": "shaping.background-export.v1.r1",
+      "repetition": 1,
+      "condition": "without-skill",
+      "orderInPair": 1,
+      "prompt": "Exports time out. I was thinking we should add a Redis queue and generate them in the background. Use context.md to shape the smallest useful solution before we implement anything. Keep the existing export contents and access rules.\n\nWork only in this task checkout and its supplied reference, if any. Do not inspect other runs, grading files, unrelated directories, credentials, or personal configuration. Do not launch another agent through a CLI. Use the tools actually available; report missing capabilities honestly. Do not push, publish, or change external services.",
+      "observed": {
+        "hostVersion": "0.0.1790524853-gfa9fda",
+        "sessionId": null,
+        "models": [
+          "gpt-6-astra"
+        ],
+        "effort": null,
+        "mode": "high",
+        "tools": [
+          "apply_patch",
+          "shell_command",
+          "shell_command_kill",
+          "shell_command_status"
+        ],
+        "seconds": 45.284099653999995,
+        "inputTokens": 13902,
+        "outputTokens": 794,
+        "skillRead": null,
+        "outsideAccess": [],
+        "disabledToolErrors": 0,
+        "mcpServers": [
+          "2 account MCP server(s) connected, names withheld"
+        ],
+        "hostGuidance": [
+          "skill: implementing",
+          "skill: naming-things",
+          "skill: shaping",
+          "7 other account skill(s) or plugin(s), names withheld"
+        ],
+        "workspaceGuidance": []
+      },
+      "outcome": {
+        "execution": "succeeded",
+        "detail": null,
+        "model": "match",
+        "tools": "match",
+        "skillIntact": null,
+        "missingEvidence": [],
+        "checks": "passed"
+      },
+      "response": "**Use the existing database-backed JobRunner, not Redis.** The supplied context identifies formatting and compression—up to 90 seconds—as the slow work. Row fetching normally takes under one second. Redis adds unapproved infrastructure without addressing the main correctness constraint.\n\n**Capture the export data during the request; format it in the worker.** Today, both row selection and field values come from one request-time database snapshot. A worker that reruns the filter would export later data. Saving only order IDs also fails because orders can be edited or deleted and there is no version history.\n\nThe smallest useful flow is:\n\n1. **Request:** Apply existing authentication, workspace access checks, and filter semantics. Read the rows in one database snapshot, then durably save all values and ordering information needed to reproduce the existing CSV. Record the requester and workspace on an export record. Persist the snapshot and enqueue its job atomically in the database; return `202 Accepted` with the export ID only after commit. The job carries the ID, not an open transaction.\n2. **Worker:** Load that immutable data and run the existing CSV formatting and compression. Upload to a private, stable object key unique to the export. Mark the export ready only after upload succeeds.\n3. **Retrieval:** Provide pending/ready/failed status and a download action once ready. Check requester identity and **current** workspace membership on every download; workspace membership alone must not let another member download it. Apply the same restriction to status. Do not issue a persistent storage URL that bypasses these checks.\n\n**Make retries safe with the same export ID and object key.** If upload succeeds but the worker crashes before recording success, retrying replaces the same private object using the same captured data, then records readiness. A ready export is a no-op on retry. State updates must not let a late failure overwrite ready status. Use JobRunner’s existing retry behavior rather than introducing another retry system.\n\nKeep CSV columns, filters, formatting, and existing access rules unchanged. Exclude Redis, notifications, scheduling, cancellation, and new export-size policies. Use a simple status check rather than adding push delivery.\n\nBefore implementation, confirm that JobRunner can enqueue within the snapshot-persistence transaction and measure the added persistence cost: fast reads do not prove the capture request will remain below 30 seconds. Durable copied data also needs a retention decision consistent with existing export handling.\n\nAcceptance checks should cover:\n- Editing/deleting orders after acceptance leaves exported rows and values unchanged.\n- Existing CSV output and filter behavior remain identical.\n- A crash after upload, followed by retry, yields one logical ready export.\n- Other members and revoked requesters cannot download, including after completion.\n- Capture completes within the gateway limit for representative exports.\n\nThis is a proposal based on `context.md`; no implementation or external changes were made.",
+      "diff": "",
+      "changedPaths": [],
+      "checks": [
+        {
+          "id": "context-unchanged",
+          "description": "context.md is byte-identical to the supplied input",
+          "command": [
+            "compare",
+            "context.md",
+            "{case}/context.md"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.0002057519999998476,
+          "output": "identical"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "shell_command",
+          "summary": "cat context.md",
+          "error": false,
+          "result": "exit 0\n…load an object and crash before recording success in the database.\n- Object storage supports replacing an object at a chosen key. Objects remain\n  private unless the application explicitly grants access.\n- Jobs can reference durable database rows. The job payload cannot retain an open\n  request transaction or its database snapshot across a process restart.\n- Redis is not currently deployed. No new infrastructure has been approved.\n\n# Scope\n\nThis request is for a proposed solution, not implementation. No traffic target,\ndeadline, export-size policy, or new notification behavior has been agreed."
+        }
+      ],
+      "grade": {
+        "grader": "Amp 0.0.1790524853-gfa9fda, mode high, model gpt-6-astra",
+        "method": "Model-assisted rubric grading in a fresh isolated Amp session. The grader saw the shared task prompt (without the skill instruction), pristine inputs, the final response, the workspace diff, harness-executed checks, and the observed tool trace (commands with exit status and output tails) with supplied-reference reads removed. It did not see the condition label, run identity, timing, or tokens. The response itself may still reveal the condition.",
+        "criteria": [
+          {
+            "id": "outcome-framing",
+            "verdict": "pass",
+            "evidence": "response.md:1,3,7-8 proposes moving slow formatting/compression to a worker while retaining fast request-time capture, rather than installing Redis. Line 22 requires capture within the gateway limit; context.md:7-8 supplies the actual 90-second work and 30-second timeout."
+          },
+          {
+            "id": "existing-runner",
+            "verdict": "pass",
+            "evidence": "response.md:1 explicitly chooses 'the existing database-backed JobRunner, not Redis' because Redis adds unapproved infrastructure; lines 11 and 15 reuse its retries and flag transactional enqueue support for confirmation. This is grounded in inputs/context.md:17-25, not an unsupported claim that transactional enqueue already works."
+          },
+          {
+            "id": "click-time-snapshot",
+            "verdict": "pass",
+            "evidence": "response.md:3 explains that rerunning filters exports later data and IDs alone fail when orders are edited/deleted without history. Lines 7-8 propose durably saving all CSV values and ordering information from one request-time snapshot and formatting that immutable copy. inputs/context.md:4-6,23-24 confirms both the required semantics and why a retained transaction is insufficient."
+          },
+          {
+            "id": "requester-access",
+            "verdict": "pass",
+            "evidence": "response.md:9 requires requester identity plus current workspace membership on every download and disallows persistent URLs bypassing those checks. Line 21 explicitly tests rejection of other members and revoked requesters after completion, matching inputs/context.md:9-12."
+          },
+          {
+            "id": "repeated-delivery",
+            "verdict": "pass",
+            "evidence": "response.md:11 explicitly handles upload success followed by a crash before recording completion: retry replaces the same private object from the captured data, ready exports are no-ops, and late failures cannot overwrite readiness. Line 20 calls for one logical ready export, not exactly-once execution. inputs/context.md:18-22 supplies repeated delivery and replace-at-key storage semantics."
+          },
+          {
+            "id": "observable-success",
+            "verdict": "pass",
+            "evidence": "response.md:17-22 supplies observable acceptance conditions for post-acceptance edits/deletions, CSV/filter equivalence, crash-after-upload retries, unauthorized/revoked download attempts, and capture latency below the gateway limit. These are proposed checks, not claimed executed tests; evidence/checks.md only reports context immutability."
+          },
+          {
+            "id": "bounded",
+            "verdict": "pass",
+            "evidence": "changes.diff is empty; checks.md's context-unchanged check passed and reports byte-identical context; actions.md records only 'shell_command: cat context.md'. response.md:13 excludes Redis and unrelated features, and line 15 leaves transaction support, persistence cost, and retention for confirmation. It invents no deadline or throughput target; the 30-second boundary is supplied in inputs/context.md:8."
+          }
+        ],
+        "note": "All criteria pass: the proposal preserves the supplied export semantics and access rules while using existing durable jobs with retry-safe publication. Observed evidence supports advice-only delivery and unchanged context; acceptance checks are recommendations, not executed feature verification."
+      },
+      "skillSha256": null,
+      "annotations": []
+    },
+    {
+      "id": "shaping.background-export.v1.r1.with-skill",
+      "caseKey": "shaping/background-export@v1",
+      "pair": "shaping.background-export.v1.r1",
+      "repetition": 1,
+      "condition": "with-skill",
+      "orderInPair": 2,
+      "prompt": "Read reference/SKILL.md and apply its guidance to this task.\n\nExports time out. I was thinking we should add a Redis queue and generate them in the background. Use context.md to shape the smallest useful solution before we implement anything. Keep the existing export contents and access rules.\n\nWork only in this task checkout and its supplied reference, if any. Do not inspect other runs, grading files, unrelated directories, credentials, or personal configuration. Do not launch another agent through a CLI. Use the tools actually available; report missing capabilities honestly. Do not push, publish, or change external services.",
+      "observed": {
+        "hostVersion": "0.0.1790524853-gfa9fda",
+        "sessionId": null,
+        "models": [
+          "gpt-6-astra"
+        ],
+        "effort": null,
+        "mode": "high",
+        "tools": [
+          "apply_patch",
+          "shell_command",
+          "shell_command_kill",
+          "shell_command_status"
+        ],
+        "seconds": 44.392302618,
+        "inputTokens": 15515,
+        "outputTokens": 818,
+        "skillRead": true,
+        "outsideAccess": [],
+        "disabledToolErrors": 0,
+        "mcpServers": [
+          "2 account MCP server(s) connected, names withheld"
+        ],
+        "hostGuidance": [
+          "skill: implementing",
+          "skill: naming-things",
+          "skill: shaping",
+          "7 other account skill(s) or plugin(s), names withheld"
+        ],
+        "workspaceGuidance": []
+      },
+      "outcome": {
+        "execution": "succeeded",
+        "detail": null,
+        "model": "match",
+        "tools": "match",
+        "skillIntact": true,
+        "missingEvidence": [],
+        "checks": "passed"
+      },
+      "response": "**Use the existing database-backed JobRunner, not Redis. Capture the export data during the request; move only CSV formatting, compression, and upload into the background.** This is a proposed shape, not an approved implementation.\n\n`context.md` identifies the bottleneck: reads normally take under one second, while formatting and compression can take 90 seconds against a 30-second gateway limit. JobRunner already provides durable jobs and retries; Redis would add unapproved infrastructure without solving the data-consistency requirement.\n\n### Preserve the request-time snapshot\n\nQueuing just the filters—or even matching order IDs—would change the export. Orders may be edited or deleted before a worker runs, and there is no version history.\n\nThe request must therefore durably capture **all values needed to reproduce the existing CSV**, using the same database snapshot that selects the rows. The worker must not re-read live orders to build the file.\n\n```diagram\nAuthenticated request + filters\n    → capture snapshot values durably\n    → commit export record and durable job handoff\n    → return export status reference\n\nJobRunner\n    → format and compress captured values\n    → upload private file\n    → mark export ready\n\nRequester\n    → check status\n    → download through existing authorization checks\n```\n\n### Keep one export responsible for its outcome\n\nA durable export record owns the requester, workspace, captured input, status, and private object key. The existing export code retains column, filter, and formatting behavior; JobRunner owns execution and retries.\n\n- **Acceptance:** Return success only once the captured input and job handoff are durable. Prefer one database transaction if JobRunner supports it. Otherwise, a recoverable handoff is required before implementation can proceed.\n- **Retry safety:** Allocate one object key per export. Every attempt produces the same artifact from immutable input and replaces that key. Record “ready” only after upload succeeds. A crash after upload but before recording success can then safely repeat the upload. An already-ready job is a no-op.\n- **Access:** Keep storage private. Status and download access should require the original requester’s identity and current workspace membership. Possessing an export reference must not grant access; other members and revoked requesters remain denied.\n- **User experience:** Return promptly with a status reference. The smallest interaction is a status view with refresh and a download action when ready. Exhausted retries should show failure rather than leave the export indefinitely pending. No notification system is needed.\n\n### Boundary and remaining checks\n\nSuccess means an export taking 90 seconds finishes outside the HTTP request, contains the original snapshot’s values despite later edits or deletes, survives retries, and retains the existing download restrictions.\n\nBefore implementation, verify JobRunner’s transaction/handoff and terminal-failure contracts, whether overlapping attempts produce identical artifacts, and whether durable input capture still fits within the gateway limit for representative exports. The supplied context establishes none of those implementation details. Retention for captured input and abandoned artifacts also needs an explicit decision; no expiry or export-size policy is assumed.\n\n**Exclude Redis, new infrastructure, CSV/filter changes, notifications, cancellation, and general job-framework work.** No files or services were changed.",
+      "diff": "",
+      "changedPaths": [],
+      "checks": [
+        {
+          "id": "context-unchanged",
+          "description": "context.md is byte-identical to the supplied input",
+          "command": [
+            "compare",
+            "context.md",
+            "{case}/context.md"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.00021626800000012735,
+          "output": "identical"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "shell_command",
+          "summary": "cat reference/SKILL.md && printf '\\n---CONTEXT---\\n' && cat context.md",
+          "error": false,
+          "result": "exit 0\n…load an object and crash before recording success in the database.\n- Object storage supports replacing an object at a chosen key. Objects remain\n  private unless the application explicitly grants access.\n- Jobs can reference durable database rows. The job payload cannot retain an open\n  request transaction or its database snapshot across a process restart.\n- Redis is not currently deployed. No new infrastructure has been approved.\n\n# Scope\n\nThis request is for a proposed solution, not implementation. No traffic target,\ndeadline, export-size policy, or new notification behavior has been agreed."
+        }
+      ],
+      "grade": {
+        "grader": "Amp 0.0.1790524853-gfa9fda, mode high, model gpt-6-astra",
+        "method": "Model-assisted rubric grading in a fresh isolated Amp session. The grader saw the shared task prompt (without the skill instruction), pristine inputs, the final response, the workspace diff, harness-executed checks, and the observed tool trace (commands with exit status and output tails) with supplied-reference reads removed. It did not see the condition label, run identity, timing, or tokens. The response itself may still reveal the condition.",
+        "criteria": [
+          {
+            "id": "outcome-framing",
+            "verdict": "pass",
+            "evidence": "response.md:1-3 proposes moving formatting, compression, and upload out of the request, identifying the 90-second processing versus 30-second gateway limit from inputs/context.md:7-8. Redis is treated as an unnecessary suggested means, not the required outcome."
+          },
+          {
+            "id": "existing-runner",
+            "verdict": "pass",
+            "evidence": "response.md:1-3 chooses the existing database-backed JobRunner because it already provides durable jobs and retries, while Redis adds unapproved infrastructure. These reasons match inputs/context.md:17-25."
+          },
+          {
+            "id": "click-time-snapshot",
+            "verdict": "pass",
+            "evidence": "response.md:7-9 explains that filters or IDs alone cannot preserve exports after edits/deletes without version history, and requires durable capture of all CSV values using the selecting database snapshot, forbidding worker reads of live orders. This preserves the row-set and value contract in inputs/context.md:3-6."
+          },
+          {
+            "id": "requester-access",
+            "verdict": "pass",
+            "evidence": "response.md:33 requires private storage, original requester identity, and current workspace membership; it explicitly denies other members and revoked requesters. This matches inputs/context.md:9-12."
+          },
+          {
+            "id": "repeated-delivery",
+            "verdict": "pass",
+            "evidence": "response.md:32 specifies immutable input, one replaceable object key per export, ready only after successful upload, safe repeated upload after a crash before recording success, and a no-op for already-ready jobs. This directly addresses inputs/context.md:18-22 without promising exactly-once execution; response.md:40 flags overlapping-attempt artifact equivalence for verification."
+          },
+          {
+            "id": "observable-success",
+            "verdict": "pass",
+            "evidence": "response.md:31-34 defines observable acceptance, readiness, access-denial, and terminal-failure conditions. Lines 38-40 require a 90-second export to complete outside HTTP, retain snapshot values after edits/deletes, survive retries, preserve access restrictions, and verify capture fits the gateway limit. These are proposed success conditions, not claims of executed tests."
+          },
+          {
+            "id": "bounded",
+            "verdict": "pass",
+            "evidence": "checks.md check context-unchanged passed and reports byte-identical context.md; changes.diff is empty and actions.md reports no tool calls. response.md:1 labels the result a proposal, and lines 40-42 leave policies unresolved and exclude new infrastructure and unrelated features. No deadline or throughput target is invented; the 90/30-second figures come from inputs/context.md:8."
+          }
+        ],
+        "note": "All criteria pass for a bounded, context-grounded proposal. Observed evidence establishes an empty workspace diff and unchanged context, not runtime correctness; the response appropriately leaves implementation-specific contracts and checks unresolved."
+      },
+      "skillSha256": "319eb56a07ae4a273f57a50898cfa35552447103397dbe3df51b549f8551cc43",
+      "annotations": []
+    },
+    {
+      "id": "implementing.capture-unwind.v2.r1.without-skill",
+      "caseKey": "implementing/capture-unwind@v2",
+      "pair": "implementing.capture-unwind.v2.r1",
+      "repetition": 1,
+      "condition": "without-skill",
+      "orderInPair": 1,
+      "prompt": "This checkout contains an intentionally seeded regression, not a claim of an upstream Rails bug. After a helper rescues an exception from a nested ActionView capture, surrounding output can be lost or mixed with the failed capture. Fix it and add regression tests. Preserve buffer identity, normal nesting, escaping, and exception propagation. Keep the repair in the responsibility that owns temporary capture state rather than changing callers or swallowing failures. Run relevant existing tests as well as your regression tests, and report verification limitations. See EVAL_ENVIRONMENT.md for the prepared component runtime.\n\nWork only in this task checkout and its supplied reference, if any. Do not inspect other runs, grading files, unrelated directories, credentials, or personal configuration. Do not launch another agent through a CLI. Use the tools actually available; report missing capabilities honestly. Do not push, publish, or change external services.",
+      "observed": {
+        "hostVersion": "0.0.1790524853-gfa9fda",
+        "sessionId": null,
+        "models": [
+          "gpt-6-astra"
+        ],
+        "effort": null,
+        "mode": "high",
+        "tools": [
+          "apply_patch",
+          "shell_command",
+          "shell_command_kill",
+          "shell_command_status"
+        ],
+        "seconds": 110.490771905,
+        "inputTokens": 137660,
+        "outputTokens": 2253,
+        "skillRead": null,
+        "outsideAccess": [],
+        "disabledToolErrors": 0,
+        "mcpServers": [
+          "2 account MCP server(s) connected, names withheld"
+        ],
+        "hostGuidance": [
+          "skill: implementing",
+          "skill: naming-things",
+          "skill: shaping",
+          "7 other account skill(s) or plugin(s), names withheld"
+        ],
+        "workspaceGuidance": []
+      },
+      "outcome": {
+        "execution": "succeeded",
+        "detail": null,
+        "model": "match",
+        "tools": "match",
+        "skillIntact": null,
+        "missingEvidence": [],
+        "checks": "passed"
+      },
+      "response": "Fixed locally. `OutputBuffer#capture` now restores its original raw buffer in `ensure`, keeping cleanup in the owner of temporary capture state. Callers are unchanged, and exceptions propagate unchanged.\n\nAdded regression coverage for:\n- Nested exceptions unwinding through both captures.\n- A rescued inner failure preserving outer output, buffer identity, subsequent nesting, and HTML escaping.\n- Nonlocal exit via `throw`.\n\n**Verification:** All three regression tests failed before the repair and passed afterward. Existing buffer, capture-helper, controller capture, rendering, streaming, and output-safety tests passed: **596 tests, 1,983 assertions, no failures, errors, or skips**. `git diff --check` also passed.\n\nVerification used the prepared component runtime; the full Rails suite was not run. Changes remain uncommitted; nothing was pushed or published.",
+      "diff": "diff --git a/actionview/lib/action_view/buffers.rb b/actionview/lib/action_view/buffers.rb\nindex a3cfa19..90ddcc8 100644\n--- a/actionview/lib/action_view/buffers.rb\n+++ b/actionview/lib/action_view/buffers.rb\n@@ -73,8 +73,9 @@ def capture(*args)\n       new_buffer = +\"\"\n       old_buffer, @raw_buffer = @raw_buffer, new_buffer\n       yield(*args)\n-      @raw_buffer = old_buffer\n       new_buffer.html_safe\n+    ensure\n+      @raw_buffer = old_buffer\n     end\n \n     def ==(other)\ndiff --git a/actionview/test/buffers_test.rb b/actionview/test/buffers_test.rb\nindex 6d1c08a..8a4b027 100644\n--- a/actionview/test/buffers_test.rb\n+++ b/actionview/test/buffers_test.rb\n@@ -68,6 +68,44 @@ class TestOutputBuffer < ActiveSupport::TestCase\n     assert_equal \"Hello\", output\n   end\n \n+  test \"capture restores the original raw buffer when nested captures raise\" do\n+    @buffer << \"before\"\n+    original_buffer = @buffer.raw_buffer\n+    error = RuntimeError.new(\"capture failed\")\n+\n+    raised = assert_raises(RuntimeError) do\n+      @buffer.capture do\n+        @buffer << \"outer discarded\"\n+        @buffer.capture do\n+          @buffer << \"inner discarded\"\n+          raise error\n+        end\n+      end\n+    end\n+\n+    assert_same error, raised\n+    assert_same original_buffer, @buffer.raw_buffer\n+    @buffer << \"<after>\"\n+    assert_equal \"before&lt;after&gt;\", output\n+  end\n+\n+  test \"capture restores the raw buffer on throw\" do\n+    @buffer << \"before\"\n+    original_buffer = @buffer.raw_buffer\n+\n+    result = catch(:done) do\n+      @buffer.capture do\n+        @buffer << \"discarded\"\n+        throw :done, :escaped\n+      end\n+    end\n+\n+    assert_equal :escaped, result\n+    assert_same original_buffer, @buffer.raw_buffer\n+    @buffer << \"after\"\n+    assert_equal \"beforeafter\", output\n+  end\n+\n   private\n     def output\n       @buffer.to_s\ndiff --git a/actionview/test/template/capture_helper_test.rb b/actionview/test/template/capture_helper_test.rb\nindex dbd92cf..14defec 100644\n--- a/actionview/test/template/capture_helper_test.rb\n+++ b/actionview/test/template/capture_helper_test.rb\n@@ -48,6 +48,45 @@ def test_capture_does_not_reassign_buffer\n     end\n   end\n \n+  def test_capture_preserves_surrounding_output_when_a_nested_capture_is_rescued\n+    buffer = @av.output_buffer\n+    buffer << \"page before\"\n+    page_buffer = buffer.raw_buffer\n+    error = RuntimeError.new(\"nested capture failed\")\n+\n+    captured = @av.capture do\n+      buffer << \"outer before\"\n+      outer_buffer = buffer.raw_buffer\n+      begin\n+        @av.capture do\n+          buffer << \"discarded\"\n+          raise error\n+        end\n+      rescue RuntimeError => raised\n+        assert_same error, raised\n+      end\n+\n+      assert_same buffer, @av.output_buffer\n+      assert_same outer_buffer, buffer.raw_buffer\n+      buffer << \"<recovered>\"\n+      nested = @av.capture(\"<nested>\") do |text|\n+        buffer << text\n+        buffer << \"<b>safe</b>\".html_safe\n+      end\n+      assert_equal \"&lt;nested&gt;<b>safe</b>\", nested\n+      assert_predicate nested, :html_safe?\n+      buffer << nested\n+      buffer << \"outer after\"\n+    end\n+\n+    assert_equal \"outer before&lt;recovered&gt;&lt;nested&gt;<b>safe</b>outer after\", captured\n+    assert_predicate captured, :html_safe?\n+    assert_same buffer, @av.output_buffer\n+    assert_same page_buffer, buffer.raw_buffer\n+    buffer << \"page after\"\n+    assert_equal \"page beforepage after\", buffer.to_s\n+  end\n+\n   def test_content_for_used_for_read\n     content_for :foo, \"foo\"\n     assert_equal \"foo\", content_for(:foo)\n",
+      "changedPaths": [
+        "actionview/lib/action_view/buffers.rb",
+        "actionview/test/buffers_test.rb",
+        "actionview/test/template/capture_helper_test.rb"
+      ],
+      "checks": [
+        {
+          "id": "capture-unwind",
+          "description": "Held-back checks for nested and rescued capture behavior",
+          "command": [
+            "bundle",
+            "exec",
+            "ruby",
+            "-Iactivesupport/lib",
+            "-Iactionview/lib",
+            "-Iactionpack/lib",
+            "-Iactivemodel/lib",
+            "-Iactionview/test",
+            "-Iactionpack/test",
+            "{case}/checks/capture_unwind_check.rb"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.6539622820000004,
+          "output": "Running 6 tests in a single process (parallelization threshold is 50)\nRun options: --seed 13863\n\n# Running:\n\n......\n\nFinished in 0.004670s, 1284.8299 runs/s, 2355.5214 assertions/s.\n\n6 runs, 11 assertions, 0 failures, 0 errors, 0 skips\n"
+        },
+        {
+          "id": "buffers-tests",
+          "description": "Upstream ActionView buffer tests",
+          "command": [
+            "bundle",
+            "exec",
+            "ruby",
+            "-Iactivesupport/lib",
+            "-Iactionview/lib",
+            "-Iactionpack/lib",
+            "-Iactivemodel/lib",
+            "-Iactionview/test",
+            "-Iactionpack/test",
+            "actionview/test/buffers_test.rb"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.6463209299999999,
+          "output": "Running 13 tests in a single process (parallelization threshold is 50)\nRun options: --seed 22\n\n# Running:\n\n.............\n\nFinished in 0.009352s, 1390.0617 runs/s, 4170.1850 assertions/s.\n\n13 runs, 39 assertions, 0 failures, 0 errors, 0 skips\n"
+        },
+        {
+          "id": "capture-helper-tests",
+          "description": "Upstream ActionView capture helper tests, including any the agent added",
+          "command": [
+            "bundle",
+            "exec",
+            "ruby",
+            "-Iactivesupport/lib",
+            "-Iactionview/lib",
+            "-Iactionpack/lib",
+            "-Iactivemodel/lib",
+            "-Iactionview/test",
+            "-Iactionpack/test",
+            "actionview/test/template/capture_helper_test.rb"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.7325469150000008,
+          "output": "Running 27 tests in a single process (parallelization threshold is 50)\nRun options: --seed 13938\n\n# Running:\n\n...........................\n\nFinished in 0.014441s, 1869.6238 runs/s, 4708.6821 assertions/s.\n\n27 runs, 68 assertions, 0 failures, 0 errors, 0 skips\n"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "shell_command",
+          "summary": "pwd; git status --short; cat EVAL_ENVIRONMENT.md; rg --files -g AGENTS.md -g '*capture*' -g '*buffer*' actionview",
+          "error": false,
+          "result": "exit 0\n…s load paths:\n\n```sh\nbundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test <test-or-script.rb>\n```\n\nBUNDLE_GEMFILE, BUNDLE_PATH, and BUNDLE_FROZEN are already set in the environment.\nactionview/test/template/capture_helper_test.rb\nactionview/test/buffers_test.rb\nactionview/test/fixtures/test/update_element_with_capture.erb\nactionview/test/fixtures/layouts/streaming_with_capture.erb\nactionview/test/actionpack/controller/capture_test.rb\nactionview/lib/action_view/helpers/capture_helper.rb\nactionview/lib/action_view/buffers.rb"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "cat actionview/lib/action_view/buffers.rb; cat actionview/test/buffers_test.rb; cat actionview/test/template/capture_helper_test.rb; sed -n '1,110p' actionview/lib/action_view/helpers/capture_helper.rb; rg --files -g AGENTS.md",
+          "error": false,
+          "result": "exit 1\n…ent_for(:storage) || \"Your storage is empty\"\n      #     end\n      #   end\n      #\n      # This helper works just like normal helpers.\n      #\n      #   <%= stored_content %>\n      #\n      # You can also use the <tt>yield</tt> syntax alongside an existing call to\n      # <tt>yield</tt> in a layout. For example:\n      #\n      #   <%# This is the layout %>\n      #   <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n      #   <head>\n      #     <title>My Website</title>\n      #     <%= yield :script %>\n      #   </head>\n      #   <body>\n      #     <%= yield %>\n      #   </body>"
+        },
+        {
+          "tool": "apply_patch",
+          "summary": "update actionview/test/buffers_test.rb",
+          "error": false,
+          "result": "update: actionview/test/buffers_test.rb (+38/-0)"
+        },
+        {
+          "tool": "apply_patch",
+          "summary": "update actionview/test/template/capture_helper_test.rb",
+          "error": false,
+          "result": "update: actionview/test/template/capture_helper_test.rb (+39/-0)"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "sed -n '50,125p' actionview/test/buffers_test.rb; sed -n '38,100p' actionview/test/template/capture_helper_test.rb; bundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test -e 'ARGV.each { |file| require_relative file }' actionview/test/buffers_test.rb actionview/test/template/capture_helper_test.rb",
+          "error": false,
+          "result": "exit 1\n…s_test.rb:104]:\nExpected \"discarded\" (oid=2660) to be the same as \"before\" (oid=2680).\n\n  2) Failure:\nTestOutputBuffer#test_capture_restores_the_original_raw_buffer_when_nested_captures_raise [actionview/test/buffers_test.rb:87]:\nExpected \"inner discarded\" (oid=2700) to be the same as \"before\" (oid=2720).\n\n  3) Failure:\nCaptureHelperTest#test_capture_preserves_surrounding_output_when_a_nested_capture_is_rescued [actionview/test/template/capture_helper_test.rb:70]:\nExpected \"discarded\" (oid=3220) to be the same as \"outer before\" (oid=3240).\n\n40 runs, 98 assertions, 3 failures, 0 errors, 0 skips"
+        },
+        {
+          "tool": "apply_patch",
+          "summary": "update actionview/lib/action_view/buffers.rb",
+          "error": false,
+          "result": "update: actionview/lib/action_view/buffers.rb (+2/-1)"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "sed -n '68,86p' actionview/lib/action_view/buffers.rb; cat actionview/test/actionpack/controller/capture_test.rb; rg --files actionview/test actionpack/test | rg '(output|render|streaming).*test.rb$'; bundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test -e 'ARGV.each { |file| require_relative file }' actionview/test/buffers_te…",
+          "error": false,
+          "result": "exit 0\n…e/output_safety_helper_test.rb\nactionview/test/template/streaming_render_test.rb\nactionview/test/activerecord/render_partial_with_record_identification_test.rb\nactionview/test/activerecord/partial_rendering_query_test.rb\nactionview/test/actionpack/controller/render_test.rb\nactionview/test/actionpack/abstract/render_test.rb\nRunning 46 tests in a single process (parallelization threshold is 50)\nRun options: --seed 1783\n\n# Running:\n\n..............................................\n\nFinished in 0.134672s, 341.5711 runs/s, 839.0768 assertions/s.\n\n46 runs, 113 assertions, 0 failures, 0 errors, 0 skips"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "bundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test -e 'ARGV.each { |file| require_relative file }' actionview/test/template/render_test.rb actionview/test/template/streaming_render_test.rb actionview/test/template/output_safety_helper_test.rb; git diff --check; git status --short",
+          "error": false,
+          "result": "exit 0\n…..............................................................................................................................................................................................................................................................................................................................................................\n\nFinished in 1.211191s, 454.0985 runs/s, 1543.9350 assertions/s.\n\n550 runs, 1870 assertions, 0 failures, 0 errors, 0 skips\n M actionview/lib/action_view/buffers.rb\n M actionview/test/buffers_test.rb\n M actionview/test/template/capture_helper_test.rb"
+        }
+      ],
+      "grade": {
+        "grader": "Amp 0.0.1790524853-gfa9fda, mode high, model gpt-6-astra",
+        "method": "Model-assisted rubric grading in a fresh isolated Amp session. The grader saw the shared task prompt (without the skill instruction), pristine inputs, the final response, the workspace diff, harness-executed checks, and the observed tool trace (commands with exit status and output tails) with supplied-reference reads removed. It did not see the condition label, run identity, timing, or tokens. The response itself may still reveal the condition.",
+        "criteria": [
+          {
+            "id": "held-back-checks",
+            "verdict": "pass",
+            "evidence": "evidence/checks.md: capture-unwind passed (exit 0), with 6 runs, 11 assertions, 0 failures, 0 errors, and 0 skips. This is the harness's held-back nested/rescued capture check; buffers-tests and capture-helper-tests also passed."
+          },
+          {
+            "id": "owner-repair",
+            "verdict": "pass",
+            "evidence": "inputs/rails/actionview/lib/action_view/buffers.rb:72-78 restores @raw_buffer only after yield on the seeded checkout. evidence/changes.diff moves that exact restoration into ensure in OutputBuffer#capture, preserving the saved object and propagating exceptions without rescue. The helper caller at inputs/rails/actionview/lib/action_view/helpers/capture_helper.rb:47-65 is unchanged."
+          },
+          {
+            "id": "regression-test",
+            "verdict": "pass",
+            "evidence": "evidence/changes.diff adds distinct page, outer, and discarded inner content, asserts raw-buffer identity and exact recovered escaped output, and checks exception identity. Action 5 observed all three new tests failing before the repair (40 runs, 3 failures), including 'discarded' versus 'outer before'. After repair, action 7 observed 46 runs/113 assertions passing, and action 8 ran existing rendering, streaming, and output-safety tests with 550 runs/1870 assertions passing. Harness buffers-tests and capture-helper-tests independently passed the changed suites."
+          },
+          {
+            "id": "bounded",
+            "verdict": "pass",
+            "evidence": "evidence/changes.diff contains only the ensure restoration in OutputBuffer#capture and regression additions in two existing test files. It leaves escaping, HTML-safety conversion, callers, and other buffer implementations unchanged and introduces no lifecycle abstraction."
+          },
+          {
+            "id": "accurate-report",
+            "verdict": "pass",
+            "evidence": "evidence/response.md reports three pre-repair failures, then 596 tests/1983 assertions passing; action 5 shows the three failures, and actions 7-8 show 46+550 runs and 113+1870 assertions with no failures, errors, or skips. Action 8 includes git diff --check with no diagnostics and shows three modified files. The report explicitly limits verification to the prepared component runtime, says the full Rails suite was not run, and makes no independent-review claim."
+          },
+          {
+            "id": "independent-review",
+            "verdict": "fail",
+            "evidence": "The complete observed trace in evidence/actions.md (actions 1-8) contains inspection, patches, and test commands but no independent review. evidence/response.md does not explicitly report independent review as unmet. Thus neither fulfillment nor the required unmet disclosure is evidenced, regardless of reviewer availability."
+          }
+        ],
+        "note": "The substantive repair and regression coverage are supported by the original source, observed red/green runs, and passing harness checks. The separate process criterion fails because independent review was neither observed nor explicitly reported as unmet."
+      },
+      "skillSha256": null,
+      "annotations": []
+    },
+    {
+      "id": "implementing.capture-unwind.v2.r1.with-skill",
+      "caseKey": "implementing/capture-unwind@v2",
+      "pair": "implementing.capture-unwind.v2.r1",
+      "repetition": 1,
+      "condition": "with-skill",
+      "orderInPair": 2,
+      "prompt": "Read reference/SKILL.md and apply its guidance to this task.\n\nThis checkout contains an intentionally seeded regression, not a claim of an upstream Rails bug. After a helper rescues an exception from a nested ActionView capture, surrounding output can be lost or mixed with the failed capture. Fix it and add regression tests. Preserve buffer identity, normal nesting, escaping, and exception propagation. Keep the repair in the responsibility that owns temporary capture state rather than changing callers or swallowing failures. Run relevant existing tests as well as your regression tests, and report verification limitations. See EVAL_ENVIRONMENT.md for the prepared component runtime.\n\nWork only in this task checkout and its supplied reference, if any. Do not inspect other runs, grading files, unrelated directories, credentials, or personal configuration. Do not launch another agent through a CLI. Use the tools actually available; report missing capabilities honestly. Do not push, publish, or change external services.",
+      "observed": {
+        "hostVersion": "0.0.1790524853-gfa9fda",
+        "sessionId": null,
+        "models": [
+          "gpt-6-astra"
+        ],
+        "effort": null,
+        "mode": "high",
+        "tools": [
+          "apply_patch",
+          "shell_command",
+          "shell_command_kill",
+          "shell_command_status"
+        ],
+        "seconds": 105.92511872099999,
+        "inputTokens": 157454,
+        "outputTokens": 2245,
+        "skillRead": true,
+        "outsideAccess": [],
+        "disabledToolErrors": 0,
+        "mcpServers": [
+          "2 account MCP server(s) connected, names withheld"
+        ],
+        "hostGuidance": [
+          "skill: implementing",
+          "skill: naming-things",
+          "skill: shaping",
+          "7 other account skill(s) or plugin(s), names withheld"
+        ],
+        "workspaceGuidance": []
+      },
+      "outcome": {
+        "execution": "succeeded",
+        "detail": null,
+        "model": "match",
+        "tools": "match",
+        "skillIntact": true,
+        "missingEvidence": [],
+        "checks": "passed"
+      },
+      "response": "Fixed locally: `ActionView::OutputBuffer#capture` now restores its original raw buffer in `ensure`. The repair stays with the owner of temporary capture state; callers remain unchanged and exceptions propagate normally.\n\nAdded three regression tests covering:\n- Nested exceptions restoring the exact original raw buffer and propagating the same exception.\n- Recovery inside an outer capture without losing surrounding output or leaking failed output, while preserving buffer identity, normal nesting, and HTML escaping.\n- Restoration on `throw`, covering non-exception unwinding.\n\n**Verification:** All three regressions failed before the repair. Afterward, 676 tests and 2,161 assertions passed across buffer, capture-helper, controller-capture, rendering, streaming, and tag-helper tests, with no failures, errors, or skips. `git diff --check` also passed.\n\n**Limitations:** I used the prepared component runtime, not the full Rails suite. The independent-review requirement in `reference/SKILL.md` remains unmet because no reviewer/subagent tool is available.\n\nChanges are uncommitted; nothing was pushed or published.",
+      "diff": "diff --git a/actionview/lib/action_view/buffers.rb b/actionview/lib/action_view/buffers.rb\nindex a3cfa19..90ddcc8 100644\n--- a/actionview/lib/action_view/buffers.rb\n+++ b/actionview/lib/action_view/buffers.rb\n@@ -73,8 +73,9 @@ def capture(*args)\n       new_buffer = +\"\"\n       old_buffer, @raw_buffer = @raw_buffer, new_buffer\n       yield(*args)\n-      @raw_buffer = old_buffer\n       new_buffer.html_safe\n+    ensure\n+      @raw_buffer = old_buffer\n     end\n \n     def ==(other)\ndiff --git a/actionview/test/buffers_test.rb b/actionview/test/buffers_test.rb\nindex 6d1c08a..433de73 100644\n--- a/actionview/test/buffers_test.rb\n+++ b/actionview/test/buffers_test.rb\n@@ -68,6 +68,44 @@ class TestOutputBuffer < ActiveSupport::TestCase\n     assert_equal \"Hello\", output\n   end\n \n+  test \"capture restores the original raw buffer when nested captures raise\" do\n+    @buffer << \"before\"\n+    original = @buffer.raw_buffer\n+    error = RuntimeError.new(\"capture failed\")\n+\n+    raised = assert_raises(RuntimeError) do\n+      @buffer.capture do\n+        @buffer << \"outer\"\n+        @buffer.capture do\n+          @buffer << \"inner\"\n+          raise error\n+        end\n+      end\n+    end\n+\n+    assert_same error, raised\n+    assert_same original, @buffer.raw_buffer\n+    @buffer << \"after\"\n+    assert_equal \"beforeafter\", output\n+  end\n+\n+  test \"capture restores the original raw buffer on throw\" do\n+    @buffer << \"before\"\n+    original = @buffer.raw_buffer\n+\n+    result = catch(:done) do\n+      @buffer.capture do\n+        @buffer << \"discarded\"\n+        throw :done, :escaped\n+      end\n+    end\n+\n+    assert_equal :escaped, result\n+    assert_same original, @buffer.raw_buffer\n+    @buffer << \"after\"\n+    assert_equal \"beforeafter\", output\n+  end\n+\n   private\n     def output\n       @buffer.to_s\ndiff --git a/actionview/test/template/capture_helper_test.rb b/actionview/test/template/capture_helper_test.rb\nindex dbd92cf..4fd8681 100644\n--- a/actionview/test/template/capture_helper_test.rb\n+++ b/actionview/test/template/capture_helper_test.rb\n@@ -48,6 +48,36 @@ def test_capture_does_not_reassign_buffer\n     end\n   end\n \n+  def test_capture_can_recover_from_a_failed_nested_capture\n+    buffer = @av.output_buffer\n+    buffer << \"page before\"\n+    error = RuntimeError.new(\"capture failed\")\n+\n+    string = @av.capture do\n+      buffer << \"outer before\"\n+      begin\n+        @av.capture do\n+          assert_same buffer, @av.output_buffer\n+          buffer << \"discarded\"\n+          raise error\n+        end\n+      rescue RuntimeError => raised\n+        assert_same error, raised\n+      end\n+      assert_same buffer, @av.output_buffer\n+      buffer << \"<recovered>\"\n+      buffer << @av.capture { buffer << \"<nested>\" }\n+      buffer << \"<b>safe</b>\".html_safe\n+      buffer << \"outer after\"\n+    end\n+\n+    assert_equal \"outer before&lt;recovered&gt;&lt;nested&gt;<b>safe</b>outer after\", string\n+    assert_predicate string, :html_safe?\n+    assert_same buffer, @av.output_buffer\n+    buffer << \"page after\"\n+    assert_equal \"page beforepage after\", buffer.to_s\n+  end\n+\n   def test_content_for_used_for_read\n     content_for :foo, \"foo\"\n     assert_equal \"foo\", content_for(:foo)\n",
+      "changedPaths": [
+        "actionview/lib/action_view/buffers.rb",
+        "actionview/test/buffers_test.rb",
+        "actionview/test/template/capture_helper_test.rb"
+      ],
+      "checks": [
+        {
+          "id": "capture-unwind",
+          "description": "Held-back checks for nested and rescued capture behavior",
+          "command": [
+            "bundle",
+            "exec",
+            "ruby",
+            "-Iactivesupport/lib",
+            "-Iactionview/lib",
+            "-Iactionpack/lib",
+            "-Iactivemodel/lib",
+            "-Iactionview/test",
+            "-Iactionpack/test",
+            "{case}/checks/capture_unwind_check.rb"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.6959932920000002,
+          "output": "Running 6 tests in a single process (parallelization threshold is 50)\nRun options: --seed 20285\n\n# Running:\n\n......\n\nFinished in 0.003826s, 1568.2416 runs/s, 2875.1097 assertions/s.\n\n6 runs, 11 assertions, 0 failures, 0 errors, 0 skips\n"
+        },
+        {
+          "id": "buffers-tests",
+          "description": "Upstream ActionView buffer tests",
+          "command": [
+            "bundle",
+            "exec",
+            "ruby",
+            "-Iactivesupport/lib",
+            "-Iactionview/lib",
+            "-Iactionpack/lib",
+            "-Iactivemodel/lib",
+            "-Iactionview/test",
+            "-Iactionpack/test",
+            "actionview/test/buffers_test.rb"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.6201897590000007,
+          "output": "Running 13 tests in a single process (parallelization threshold is 50)\nRun options: --seed 2809\n\n# Running:\n\n.............\n\nFinished in 0.009798s, 1326.8309 runs/s, 3980.4927 assertions/s.\n\n13 runs, 39 assertions, 0 failures, 0 errors, 0 skips\n"
+        },
+        {
+          "id": "capture-helper-tests",
+          "description": "Upstream ActionView capture helper tests, including any the agent added",
+          "command": [
+            "bundle",
+            "exec",
+            "ruby",
+            "-Iactivesupport/lib",
+            "-Iactionview/lib",
+            "-Iactionpack/lib",
+            "-Iactivemodel/lib",
+            "-Iactionview/test",
+            "-Iactionpack/test",
+            "actionview/test/template/capture_helper_test.rb"
+          ],
+          "exitCode": 0,
+          "passed": true,
+          "seconds": 0.6852931489999992,
+          "output": "Running 27 tests in a single process (parallelization threshold is 50)\nRun options: --seed 64216\n\n# Running:\n\n...........................\n\nFinished in 0.010560s, 2556.8913 runs/s, 6155.4791 assertions/s.\n\n27 runs, 65 assertions, 0 failures, 0 errors, 0 skips\n"
+        }
+      ],
+      "actions": [
+        {
+          "tool": "shell_command",
+          "summary": "cat reference/SKILL.md; cat EVAL_ENVIRONMENT.md; git status --short; rg --files -g AGENTS.md -g '*capture*' -g '*buffer*' actionview reference",
+          "error": false,
+          "result": "exit 0\n…s load paths:\n\n```sh\nbundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test <test-or-script.rb>\n```\n\nBUNDLE_GEMFILE, BUNDLE_PATH, and BUNDLE_FROZEN are already set in the environment.\nactionview/test/template/capture_helper_test.rb\nactionview/test/buffers_test.rb\nactionview/test/actionpack/controller/capture_test.rb\nactionview/test/fixtures/test/update_element_with_capture.erb\nactionview/lib/action_view/helpers/capture_helper.rb\nactionview/test/fixtures/layouts/streaming_with_capture.erb\nactionview/lib/action_view/buffers.rb"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "cat actionview/lib/action_view/buffers.rb; cat actionview/lib/action_view/helpers/capture_helper.rb; cat actionview/test/buffers_test.rb; cat actionview/test/template/capture_helper_test.rb; cat actionview/test/actionpack/controller/capture_test.rb; rg --files -g AGENTS.md -g '*SKILL*' .",
+          "error": false,
+          "result": "exit 1\n…   assert_equal expected_content_for_output, @response.body\n  end\n\n  def test_should_set_content_for_with_parameter\n    get :content_for_with_parameter\n    assert_equal expected_content_for_output, @response.body\n  end\n\n  def test_non_erb_block_content_for\n    get :non_erb_block_content_for\n    assert_equal expected_content_for_output, @response.body\n  end\n\n  def test_proper_block_detection\n    get :proper_block_detection\n    assert_equal \"some todo\", @response.body\n  end\n\n  private\n    def expected_content_for_output\n      \"<title>Putting stuff in the title!</title>\\nGreat stuff!\"\n    end\nend"
+        },
+        {
+          "tool": "apply_patch",
+          "summary": "update actionview/test/buffers_test.rb",
+          "error": false,
+          "result": "update: actionview/test/buffers_test.rb (+38/-0)"
+        },
+        {
+          "tool": "apply_patch",
+          "summary": "update actionview/test/template/capture_helper_test.rb",
+          "error": false,
+          "result": "update: actionview/test/template/capture_helper_test.rb (+30/-0)"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "sed -n '50,125p' actionview/test/buffers_test.rb; sed -n '35,90p' actionview/test/template/capture_helper_test.rb; bundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test -e 'ARGV.each { |file| require_relative file }' actionview/test/buffers_test.rb actionview/test/template/capture_helper_test.rb",
+          "error": false,
+          "result": "exit 1\n…per_test.rb:74]:\n--- expected\n+++ actual\n@@ -1 +1 @@\n-\"outer before&lt;recovered&gt;&lt;nested&gt;<b>safe</b>outer after\"\n+\"outer before\"\n\n\n  2) Failure:\nTestOutputBuffer#test_capture_restores_the_original_raw_buffer_when_nested_captures_raise [actionview/test/buffers_test.rb:87]:\nExpected \"inner\" (oid=3240) to be the same as \"before\" (oid=3260).\n\n  3) Failure:\nTestOutputBuffer#test_capture_restores_the_original_raw_buffer_on_throw [actionview/test/buffers_test.rb:104]:\nExpected \"discarded\" (oid=3280) to be the same as \"before\" (oid=3300).\n\n40 runs, 99 assertions, 3 failures, 0 errors, 0 skips"
+        },
+        {
+          "tool": "apply_patch",
+          "summary": "update actionview/lib/action_view/buffers.rb",
+          "error": false,
+          "result": "update: actionview/lib/action_view/buffers.rb (+2/-1)"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "sed -n '66,85p' actionview/lib/action_view/buffers.rb; bundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test -e 'ARGV.each { |file| require_relative file }' actionview/test/buffers_test.rb actionview/test/template/capture_helper_test.rb actionview/test/actionpack/controller/capture_test.rb; git diff --check; git diff --stat; rg…",
+          "error": false,
+          "result": "exit 0\n…_test.rb\nactionview/test/template/form_tag_helper_test.rb\nactionview/test/template/erb/tag_helper_test.rb\nactionview/test/template/form_helper_test.rb\nactionview/test/template/streaming_render_test.rb\nactionview/test/template/asset_tag_helper_test.rb\nactionview/test/template/tag_helper_test.rb\nactionview/test/activerecord/render_partial_with_record_identification_test.rb\nactionview/test/activerecord/form_helper_activerecord_test.rb\nactionview/test/activerecord/partial_rendering_query_test.rb\nactionview/test/actionpack/controller/render_test.rb\nactionview/test/actionpack/abstract/render_test.rb"
+        },
+        {
+          "tool": "shell_command",
+          "summary": "bundle exec ruby -Iactivesupport/lib -Iactionview/lib -Iactionpack/lib -Iactivemodel/lib -Iactionview/test -Iactionpack/test -e 'ARGV.each { |file| require_relative file }' actionview/test/template/render_test.rb actionview/test/template/streaming_render_test.rb actionview/test/template/tag_helper_test.rb; git diff --check; git status --short",
+          "error": false,
+          "result": "exit 0\n…..............................................................................................................................................................................................................................................................................................................................................................\n\nFinished in 1.313447s, 479.6538 runs/s, 1561.5395 assertions/s.\n\n630 runs, 2051 assertions, 0 failures, 0 errors, 0 skips\n M actionview/lib/action_view/buffers.rb\n M actionview/test/buffers_test.rb\n M actionview/test/template/capture_helper_test.rb"
+        }
+      ],
+      "grade": {
+        "grader": "Amp 0.0.1790524853-gfa9fda, mode high, model gpt-6-astra",
+        "method": "Model-assisted rubric grading in a fresh isolated Amp session. The grader saw the shared task prompt (without the skill instruction), pristine inputs, the final response, the workspace diff, harness-executed checks, and the observed tool trace (commands with exit status and output tails) with supplied-reference reads removed. It did not see the condition label, run identity, timing, or tokens. The response itself may still reveal the condition.",
+        "criteria": [
+          {
+            "id": "held-back-checks",
+            "verdict": "pass",
+            "evidence": "evidence/checks.md check capture-unwind passed: 6 runs, 11 assertions, 0 failures, 0 errors, 0 skips. The harness identifies these as held-back nested/rescued capture checks; buffers-tests and capture-helper-tests also passed."
+          },
+          {
+            "id": "owner-repair",
+            "verdict": "pass",
+            "evidence": "inputs/rails/actionview/lib/action_view/buffers.rb:72-78 restores @raw_buffer only after yield on the seeded checkout. evidence/changes.diff moves that restoration into ensure in OutputBuffer#capture, retaining new_buffer.html_safe as the normal result and introducing no rescue or caller changes. Added assertions check the same exception and original raw buffer identity."
+          },
+          {
+            "id": "regression-test",
+            "verdict": "pass",
+            "evidence": "evidence/changes.diff adds distinct page, outer, discarded-inner, and recovered content in test_capture_can_recover_from_a_failed_nested_capture, with explicit expected escaped output. evidence/actions.md action 4 observes all three regressions failing before the repair (40 runs, 3 failures), including expected full outer output versus actual 'outer before'. Actions 6 and 7 execute existing capture/controller and rendering/streaming/tag tests; action 7 records 630 runs, 2051 assertions, no failures/errors/skips. Harness buffers-tests and capture-helper-tests pass afterward."
+          },
+          {
+            "id": "bounded",
+            "verdict": "pass",
+            "evidence": "The complete evidence/changes.diff touches only OutputBuffer#capture and two relevant test files. The production change is +2/-1 lines, with no changes to escaping, global trust behavior, application callers, or lifecycle abstractions."
+          },
+          {
+            "id": "accurate-report",
+            "verdict": "unverified",
+            "evidence": "evidence/response.md accurately describes the ensure repair, three regressions, and explicitly discloses component-only verification and unmet independent review. Action 4 confirms the three pre-repair failures; action 7 confirms 630 tests/2051 assertions passed. However, action 6's observed output omits the test summary, and its compound command exit 0 does not establish the earlier test command's success. Thus the claimed aggregate '676 tests and 2,161 assertions passed' cannot be fully verified from the provided evidence. git diff --check was executed, but its result is likewise not separately preserved."
+          },
+          {
+            "id": "independent-review",
+            "verdict": "pass",
+            "evidence": "evidence/response.md explicitly states: 'The independent-review requirement in reference/SKILL.md remains unmet because no reviewer/subagent tool is available.' No independent review is observed or claimed; explicit disclosure satisfies this criterion's alternative."
+          }
+        ],
+        "note": "The localized owner-level repair and regression coverage are supported by the diff, observed pre-repair failures, and passing harness checks. Exact aggregate verification claims remain unverified because the supplied action trace truncates one test run's results; no contradictory result is observed."
+      },
+      "skillSha256": "fad2c71fad5f34bb9e8a36c1147001dc11925cbf84aefb828fe06b6cdcbe89ce",
+      "annotations": []
+    }
+  ]
+}

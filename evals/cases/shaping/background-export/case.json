@@ -1,0 +1,67 @@
+{
+  "skill": "shaping",
+  "name": "background-export",
+  "version": 1,
+  "historicalId": "shaping:1",
+  "status": {
+    "kind": "runnable"
+  },
+  "prompt": "Exports time out. I was thinking we should add a Redis queue and generate them in the background. Use context.md to shape the smallest useful solution before we implement anything. Keep the existing export contents and access rules.",
+  "input": {
+    "kind": "files",
+    "files": [
+      "context.md"
+    ]
+  },
+  "expected": "Proposes a bounded background-export direction grounded in the existing job infrastructure. Preserves click-time contents and requester-only access, addresses retried execution, and distinguishes the queue suggestion from a binding requirement. Produces advice, not an implementation.",
+  "criteria": [
+    {
+      "id": "outcome-framing",
+      "kind": "task",
+      "text": "Frames the outcome as completing exports without the HTTP timeout, rather than installing Redis as the required outcome."
+    },
+    {
+      "id": "existing-runner",
+      "kind": "task",
+      "text": "Considers the existing durable JobRunner before proposing another queue, with a concrete reason for the chosen direction."
+    },
+    {
+      "id": "click-time-snapshot",
+      "kind": "task",
+      "text": "Explains that reading current orders in the later worker changes the exported row set or field values; proposes preserving a durable click-time snapshot or explicitly flags that mechanism as an unresolved requirement."
+    },
+    {
+      "id": "requester-access",
+      "kind": "task",
+      "text": "Preserves requester-only download access and recognizes the supplied behavior after workspace membership is revoked."
+    },
+    {
+      "id": "repeated-delivery",
+      "kind": "task",
+      "text": "Accounts for JobRunner delivering a job more than once, including a crash between uploading the result and recording completion, without promising exactly-once execution."
+    },
+    {
+      "id": "observable-success",
+      "kind": "process",
+      "text": "Provides observable success conditions for the relevant boundaries, not merely a list of architecture components or work stages."
+    },
+    {
+      "id": "bounded",
+      "kind": "task",
+      "text": "Leaves context.md unchanged, does not implement the feature, and does not invent a deadline, throughput target, or mandatory new infrastructure."
+    }
+  ],
+  "checks": [
+    {
+      "kind": "file-equals",
+      "id": "context-unchanged",
+      "description": "context.md is byte-identical to the supplied input",
+      "path": "context.md",
+      "expected": "context.md"
+    }
+  ],
+  "versionNotes": [
+    "v1 input is verified identical to the pilot: its Git tree hash matches the recorded pre-agent tree 7bbce2640d00d8759cfe3bef0dafadfc9903ea3a.",
+    "Criterion kinds were added during the rebuild; prompt, input, and criterion text are unchanged."
+  ]
+}

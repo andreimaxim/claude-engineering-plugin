@@ -1,0 +1,25 @@
+{
+  "skill": "building-skills",
+  "name": "query-review-companion",
+  "version": 1,
+  "historicalId": "building-skills:1",
+  "status": { "kind": "runnable" },
+  "prompt": "Turn practice-notes.md into a portable Agent Skill named reviewing-query-plans under skills/. The existing query-investigation skill already owns fetching a concrete slow query and tracing it into application code. This companion adds our review judgment, not a replacement investigation workflow. Write the usable skill and validate what you can with installed tools. The notes are newly invented for this exercise and are safe to quote. Do not modify the existing skill.",
+  "input": { "kind": "files", "files": ["practice-notes.md", "query-investigation.md"] },
+  "expected": "Creates discoverable, portable guidance focused on interpreting real query plans and recommending bounded experiments, reusing the existing investigation capability without a tutorial or unnecessary reference split.",
+  "criteria": [
+    { "id": "metadata", "kind": "task", "text": "Creates skills/reviewing-query-plans/SKILL.md with valid frontmatter, matching name, and a plain description containing capability and activation conditions." },
+    { "id": "distinctions", "kind": "task", "text": "Retains the decision-bearing distinctions: estimated versus actual rows, representative parameters, database-specific plan evidence, and no production EXPLAIN ANALYZE without permission." },
+    { "id": "composes", "kind": "task", "text": "Composes with query-investigation and does not duplicate its end-to-end retrieval workflow or teach general SQL concepts at length." },
+    { "id": "no-invention", "kind": "task", "text": "Does not invent a universal index rule, numeric performance target, mandatory review cadence, or unrelated implementation authority." },
+    { "id": "resources-validation", "kind": "task", "text": "Keeps the tiny clarifying example inline unless a concrete reason justifies a resource; local resource links resolve and validation claims match tools actually run." }
+  ],
+  "checks": [
+    { "kind": "file-equals", "id": "existing-skill-unchanged", "description": "query-investigation.md is byte-identical to the supplied input", "path": "query-investigation.md", "expected": "query-investigation.md" }
+  ],
+  "historyPattern": "Cue expert judgment and compose with an existing capability instead of copying its workflow into a new tutorial.",
+  "versionNotes": [
+    "v1 inputs are verified identical to the pilot: their Git tree hash matches the recorded pre-agent tree 088896e7c498da0fff22302e9fc94c94d8749ba3.",
+    "Criterion kinds and the unchanged-input check were added during the rebuild; prompt, inputs, and criterion text are unchanged."
+  ]
+}

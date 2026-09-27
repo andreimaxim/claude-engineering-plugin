@@ -1,0 +1,20 @@
+{
+  "skill": "naming-things",
+  "name": "rotation-callback",
+  "version": 2,
+  "historicalId": "naming-things:3",
+  "status": { "kind": "runnable" },
+  "prompt": "A teammate wants to rename ActiveSupport's on_rotation callback to on_key_upgrade because our cookie code uses it when reading cookies signed with an old key. Is that an accurate name for the callback throughout this checkout? Recommend a name or no change, grounded in its definition and representative callers. Advice only; do not edit the repository.",
+  "input": { "kind": "repository", "repository": "rails", "runtime": true },
+  "expected": "Distinguishes successful fallback reading from changing a key, considers non-key rotations and consumers, and makes a bounded compatibility-aware recommendation.",
+  "criteria": [
+    { "id": "traces-rotator", "kind": "task", "text": "Traces the callback through Messages::Rotator and representative use beyond the proposed cookie-specific interpretation." },
+    { "id": "fallback-success", "kind": "task", "text": "Explains that the callback follows a successful fallback read, not registering a rotation, primary success, or failure of every fallback." },
+    { "id": "not-only-keys", "kind": "task", "text": "Recognizes that rotation can change serializers or options, not only encryption/signing keys, and that the callback itself does not rewrite a cookie or upgrade a key." },
+    { "id": "recommendation", "kind": "task", "text": "Rejects on_key_upgrade as a general callback name; permits keeping on_rotation or a well-supported fallback name without requiring an API break." },
+    { "id": "bounded", "kind": "task", "text": "Leaves the repository unchanged and gives one contextual recommendation rather than an unranked word list." }
+  ],
+  "versionNotes": [
+    "v2 rebuilds the Rails component runtime and EVAL_ENVIRONMENT.md; the v1 harness files were not retained."
+  ]
+}
