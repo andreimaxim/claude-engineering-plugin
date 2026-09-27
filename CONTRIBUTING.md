@@ -23,8 +23,9 @@ Run these checks before submitting changes:
 
 ```sh
 claude plugin validate --strict skills
-claude plugin validate --strict .claude-plugin/plugin.json
-claude plugin validate --strict .claude-plugin/marketplace.json
+claude plugin validate .claude-plugin/plugin.json
+claude plugin validate .claude-plugin/marketplace.json
 ```
 
-When preparing a release, bump `version` in `.claude-plugin/plugin.json`.
+The plugin intentionally omits `version` so updates track Git commits. The two
+manifest checks report a missing-version warning; other warnings should be fixed.

@@ -1,17 +1,6 @@
-# Engineering
+# Engineering Skills
 
-Reusable skills for software development.
-
-## Installation
-
-Install with Claude Code:
-
-```sh
-claude plugin marketplace add andreimaxim/skills
-claude plugin install engineering@andreimaxim
-```
-
-## Skills
+Reusable skills for software development:
 
 - [shaping](skills/shaping/SKILL.md): shapes rough, solved, bounded solutions before
   implementation.
@@ -19,5 +8,12 @@ claude plugin install engineering@andreimaxim
   emergent scopes, architectural refinement, and independent verification.
 - [naming-things](skills/naming-things/SKILL.md): chooses names and terminology by
   clarifying meaning, behavior, and reader context.
+
+Install with Claude Code:
+
+```sh
+claude plugin marketplace add andreimaxim/skills
+claude plugin install engineering@andreimaxim
+```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local development and validation.
