@@ -1,0 +1,45 @@
+# Single source of truth for the evaluation toolchain and project commands.
+# Ruby runs the evaluation CLI and the pinned Rails target runtime; Node and pnpm
+# build and serve the SvelteKit review app. Ruby stays on 3.3 because the Rails
+# v7.2.2.1 runtime pins nokogiri 1.16.5, whose native builds stop at Ruby 3.3.
+# mise downloads a precompiled Ruby when available and otherwise builds from source.
+[tools]
+ruby = "3.3.12"
+node = "24.21.0"
+pnpm = "12.7.0"
+
+[tasks.evals]
+description = "Run the evaluation CLI, e.g. `mise run evals -- cases`"
+run = "ruby evals/exe/evals"
+
+[tasks."web:install"]
+description = "Install the review app's locked dependencies"
+dir = "evals/web"
+run = "pnpm install --frozen-lockfile"
+
+[tasks."web:check"]
+description = "Type-check the review app with svelte-check"
+depends = ["web:install"]
+dir = "evals/web"
+run = "pnpm check"
+
+[tasks."web:build"]
+description = "Build the review app for adapter-node"
+depends = ["web:install"]
+dir = "evals/web"
+run = "pnpm build"
+
+[tasks.serve]
+description = "Serve the built review app on $PORT (default 4173)"
+dir = "evals/web"
+run = "node build"
+env = { HOST = "0.0.0.0", EVALS_RESULTS_DIR = "{{config_root}}/evals/results" }
+
+[tasks.check]
+description = "Ruby syntax, CLI smoke check, Svelte checks, then a production build"
+depends = ["web:check"]
+run = [
+  "for file in evals/exe/evals $(find evals/lib -name '*.rb'); do ruby -wc \"$file\" >/dev/null || exit 1; done",
+  "ruby evals/exe/evals cases >/dev/null",
+  "mise run --quiet web:build",
+]

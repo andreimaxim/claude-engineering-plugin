@@ -30,11 +30,11 @@ them.
 
 ## Work in an Amp orb
 
-The executable `.agents/setup` prepares the evaluation environment. It uses the
-orb's Node 24+ and pnpm, installs missing Ruby/Bundler build prerequisites and the
-stable Claude Code CLI, installs the locked evaluation dependencies, caches the
-pinned Rails source and runtime outside this repository, and builds the review app.
-It is safe to rerun from the repository root:
+The executable `.agents/setup` prepares the evaluation environment. It installs mise
+if needed, then the Ruby, Node, and pnpm versions pinned in the root `mise.toml`, native
+build prerequisites, and the stable Claude Code CLI; caches the pinned Rails source and
+runtime outside this repository; and builds the review app with its locked
+dependencies. It is safe to rerun from the repository root:
 
 ```sh
 .agents/setup
@@ -55,6 +55,7 @@ branch. Existing orbs can run the script directly.
 Run these checks before submitting changes:
 
 ```sh
+mise run check   # when the evaluation suite changed
 claude plugin validate --strict skills
 claude plugin validate .claude-plugin/plugin.json
 claude plugin validate .claude-plugin/marketplace.json

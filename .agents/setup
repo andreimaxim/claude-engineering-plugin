@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
+# Prepares an orb for the evaluation suite. Noninteractive and idempotent: safe to
+# rerun. It installs tools and caches public sources only; it never authenticates
+# to agent hosts, runs model evaluations, or copies private judgments or keys.
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+mise_version="v2026.9.15"
+export PATH="$HOME/.local/bin:$PATH"
 
 step() {
   local label="$1" started=$SECONDS
@@ -11,26 +16,42 @@ step() {
   printf 'Completed in %ss\n' "$((SECONDS - started))"
 }
 
-# Amp's Debian orb image supplies Node, pnpm, Git, curl, and agent-browser.
-node -e 'if (Number(process.versions.node.split(".")[0]) < 24) throw new Error("The eval suite needs Node 24 or newer")'
-pnpm --version
-
+# Build prerequisites for native gems and for mise's source-build fallback when no
+# precompiled Ruby matches this platform.
 missing=()
-for package in ruby ruby-dev ruby-bundler build-essential pkg-config; do
+for package in build-essential pkg-config libyaml-dev libssl-dev zlib1g-dev libffi-dev; do
   if [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" != 'install ok installed' ]]; then
     missing+=("$package")
   fi
 done
 if ((${#missing[@]})); then
   step 'Refresh package indexes' sudo -n apt-get update
-  step 'Install Ruby and native-extension build tools' sudo -n env DEBIAN_FRONTEND=noninteractive \
+  step 'Install native build prerequisites' sudo -n env DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends "${missing[@]}"
 fi
-ruby -e 'abort "Rails fixtures need Ruby 3.1 or newer" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.1")'
-bundle --version
+
+# mise selects the pinned Ruby, Node, and pnpm from mise.toml.
+if ! command -v mise >/dev/null 2>&1; then
+  installer="$(mktemp)"
+  step 'Download the mise installer' curl --fail --silent --show-error --location https://mise.run --output "$installer"
+  step "Install mise $mise_version" env MISE_VERSION="$mise_version" MISE_QUIET=1 sh "$installer"
+  rm -f -- "$installer"
+fi
+mise --version
+step 'Trust the repository mise configuration' mise trust --yes "$repo_root/mise.toml"
+step 'Install pinned Ruby, Node, and pnpm' mise install --yes --cd "$repo_root"
+eval "$(mise env --shell bash --cd "$repo_root")"
+ruby --version
+node --version
+pnpm --version
+
+# A clean login shell (as used by supervised services) must find mise itself.
+if ! env -i HOME="$HOME" USER="${USER:-}" bash -lc 'command -v mise' >/dev/null 2>&1; then
+  printf '\n# Added by %s/.agents/setup\nexport PATH="$HOME/.local/bin:$PATH"\n' "$repo_root" >>"$HOME/.profile"
+fi
+env -i HOME="$HOME" USER="${USER:-}" bash -lc "cd '$repo_root' && mise exec -- ruby --version && mise exec -- node --version"
 
 # Install the client only. Never authenticate or launch model runs in a snapshot.
-export PATH="$HOME/.local/bin:$PATH"
 if ! command -v claude >/dev/null 2>&1; then
   installer="$(mktemp)"
   trap 'rm -f -- "$installer"' EXIT
@@ -40,9 +61,10 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 claude --version
 
-step 'Install locked TypeScript dependencies' pnpm --dir "$repo_root/evals" install --frozen-lockfile
-step 'Cache pinned Rails source and runtime outside the repository' pnpm --dir "$repo_root/evals" evals fetch rails
-step 'Build the evaluation app' pnpm --dir "$repo_root/evals" build
+cd "$repo_root"
+step 'Check the evaluation CLI (lists cases)' mise run --quiet evals -- cases
+step 'Cache pinned Rails source and runtime outside the repository' mise run --quiet evals -- fetch rails
+step 'Install locked app dependencies and build the review app' mise run --quiet web:build
 
 printf '\nSetup ready. Start the declared portal with: amp orb services ensure\n'
 printf 'Agent authentication and private review data are not provisioned by setup.\n'

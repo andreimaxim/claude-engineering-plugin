@@ -5,7 +5,7 @@
     "ref": "v7.2.2.1",
     "license": "MIT",
     "toolchain": {
-      "description": "Ruby >= 3.1 with Bundler; a focused ActionView/ActionPack component runtime pinned to versions from Rails' own Gemfile.lock at this commit.",
+      "description": "Ruby 3.1-3.3 with Bundler (mise.toml pins 3.3.12); a focused ActionView/ActionPack component runtime pinned to versions from Rails' own Gemfile.lock at this commit.",
       "probes": [["ruby", "--version"], ["bundle", "--version"]],
       "runtimeDir": "repositories/rails",
       "install": ["bundle", "install"],

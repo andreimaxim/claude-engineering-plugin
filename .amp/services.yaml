@@ -1,6 +1,12 @@
 services:
   evals:
-    command: cd evals && pnpm install --frozen-lockfile --silent && pnpm build && exec node src/cli.ts serve --port "$PORT"
+    # A login shell runs this from the repository root; mise selects the pinned Node
+    # and pnpm. The server reads only reviewed files under evals/results.
+    command: mise run --quiet web:build && exec mise run --quiet serve
+    env:
+      # The portal is a trusted reverse proxy.
+      PROTOCOL_HEADER: x-forwarded-proto
+      HOST_HEADER: x-forwarded-host
     health: /healthz
     portal:
       title: Skill evaluations

@@ -70,7 +70,7 @@ safeguard for the failure mode.
 
 ## Evaluate the skills
 
-The [TypeScript evaluation suite and review app](evals/README.md) compare actual
+The [Ruby evaluation suite and SvelteKit review app](evals/README.md) compare actual
 answers and changes with and without supplied skill guidance. Use versioned cases,
 recorded execution evidence, and condition-masked human reviews to assess future
 skill revisions. Task correctness, process requirements, and reviewer preference

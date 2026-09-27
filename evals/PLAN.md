@@ -2,6 +2,9 @@
 
 > Status: implemented in this directory; see [README.md](README.md) for usage. This plan is
 > kept as the design record. Its references to removed files describe the handoff state.
+> The owner later superseded the TypeScript requirement: the harness and CLI are now
+> idiomatic Ruby, the review app is SvelteKit, and the root `mise.toml` pins the
+> toolchain. The other requirements below still apply.
 
 Build an idiomatic TypeScript evaluation suite and a polished portal web app that
 answer: **what changes when an engineering agent receives these skills?** Claude

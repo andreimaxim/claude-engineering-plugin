@@ -1,16 +1,16 @@
 {
   "skill": "shaping",
   "name": "settled-label-change",
-  "version": 2,
+  "version": 3,
   "historicalId": "shaping:2",
   "status": {
     "kind": "runnable"
   },
-  "prompt": "In labels.py, change the running status label from Building report to Preparing export. Keep the status values and the other labels unchanged.",
+  "prompt": "In labels.rb, change the running status label from Building report to Preparing export. Keep the status values and the other labels unchanged.",
   "input": {
     "kind": "files",
     "files": [
-      "labels.py"
+      "labels.rb"
     ]
   },
   "expected": "Makes the requested one-line change and verifies it proportionately. Does not manufacture a shaping phase or ask for approval to perform the already-authorized edit.",
@@ -18,7 +18,7 @@
     {
       "id": "exact-change",
       "kind": "task",
-      "text": "The only change to labels.py replaces Building report with Preparing export; status values, other labels, and status_label behavior are preserved."
+      "text": "The only change to labels.rb replaces Building report with Preparing export; status values, other labels, and ExportStatus.label behavior are preserved."
     },
     {
       "id": "completes",
@@ -40,12 +40,13 @@
     {
       "kind": "file-equals",
       "id": "exact-label-change",
-      "description": "labels.py matches the expected bytes exactly (one label changed)",
-      "path": "labels.py",
-      "expected": "expected/labels.py"
+      "description": "labels.rb matches the expected bytes exactly (one label changed)",
+      "path": "labels.rb",
+      "expected": "expected/labels.rb"
     }
   ],
   "versionNotes": [
-    "v2 rebuilds labels.py and its exact expected output; the v1 input snapshot was not retained."
+    "v2 rebuilds labels.py and its exact expected output; the v1 input snapshot was not retained.",
+    "v3 converts labels.py and its expected output to Ruby (ExportStatus::LABELS and ExportStatus.label); v3 results are not input-for-input comparable with v2."
   ]
 }

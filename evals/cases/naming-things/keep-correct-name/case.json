@@ -1,22 +1,52 @@
 {
   "skill": "naming-things",
   "name": "keep-correct-name",
-  "version": 2,
+  "version": 3,
   "historicalId": "naming-things:2",
-  "status": { "kind": "runnable" },
-  "prompt": "Would retry_count be a clearer name than max_attempts in retries.py? Give me your recommendation and the reason. I'm looking for naming advice, not an implementation change.",
-  "input": { "kind": "files", "files": ["retries.py"] },
+  "status": {
+    "kind": "runnable"
+  },
+  "prompt": "Would retry_count be a clearer name than max_attempts in retries.rb? Give me your recommendation and the reason. I'm looking for naming advice, not an implementation change.",
+  "input": {
+    "kind": "files",
+    "files": [
+      "retries.rb"
+    ]
+  },
   "expected": "Keeps max_attempts because it is an upper bound on total sends, including the initial attempt, rather than an observed count or a retries-only limit. Answers at the scale of the question.",
   "criteria": [
-    { "id": "keep-name", "kind": "task", "text": "Recommends keeping max_attempts rather than adopting retry_count." },
-    { "id": "total-sends", "kind": "task", "text": "Correctly explains that max_attempts=3 permits three sends in total, not an initial send plus three retries." },
-    { "id": "limit-not-count", "kind": "task", "text": "Recognizes that the value is a configured limit, not the number of retries that have happened." },
-    { "id": "advice-scale", "kind": "task", "text": "Leaves retries.py unchanged and does not turn the advice into an unrelated retry-system redesign." }
+    {
+      "id": "keep-name",
+      "kind": "task",
+      "text": "Recommends keeping max_attempts rather than adopting retry_count."
+    },
+    {
+      "id": "total-sends",
+      "kind": "task",
+      "text": "Correctly explains that max_attempts: 3 permits three sends in total, not an initial send plus three retries."
+    },
+    {
+      "id": "limit-not-count",
+      "kind": "task",
+      "text": "Recognizes that the value is a configured limit, not the number of retries that have happened."
+    },
+    {
+      "id": "advice-scale",
+      "kind": "task",
+      "text": "Leaves retries.rb unchanged and does not turn the advice into an unrelated retry-system redesign."
+    }
   ],
   "checks": [
-    { "kind": "file-equals", "id": "retries-unchanged", "description": "retries.py is byte-identical to the supplied input", "path": "retries.py", "expected": "retries.py" }
+    {
+      "kind": "file-equals",
+      "id": "retries-unchanged",
+      "description": "retries.rb is byte-identical to the supplied input",
+      "path": "retries.rb",
+      "expected": "retries.rb"
+    }
   ],
   "versionNotes": [
-    "v2 rebuilds retries.py; the v1 input snapshot was not retained, so v1 results cannot be compared input-for-input."
+    "v2 rebuilds retries.py; the v1 input snapshot was not retained, so v1 results cannot be compared input-for-input.",
+    "v3 converts retries.py to an equivalent Ruby retries.rb (max_attempts: 3 still allows three sends in total); v3 results are not input-for-input comparable with v2."
   ]
 }

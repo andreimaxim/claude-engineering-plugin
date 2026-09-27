@@ -1,18 +1,15 @@
 {
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
-    "target": "es2024",
-    "lib": ["es2024", "esnext.collection", "dom", "dom.iterable"],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "jsx": "react-jsx",
-    "types": ["vite/client"],
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "skipLibCheck": true
-  },
-  "include": ["src", "vite.config.ts"]
+    "moduleResolution": "bundler"
+  }
 }

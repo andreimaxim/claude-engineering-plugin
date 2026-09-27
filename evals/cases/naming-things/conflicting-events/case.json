@@ -1,25 +1,63 @@
 {
   "skill": "naming-things",
   "name": "conflicting-events",
-  "version": 2,
+  "version": 3,
   "historicalId": "naming-things:1",
-  "status": { "kind": "runnable" },
-  "prompt": "What should we call shipment['completed_at'] in parcel.py? A teammate suggested delivered_at. Recommend the best outcome and explain briefly. Advice only; don't change the code.",
-  "input": { "kind": "files", "files": ["parcel.py"] },
+  "status": {
+    "kind": "runnable"
+  },
+  "prompt": "What should we call shipment[:completed_at] in parcel.rb? A teammate suggested delivered_at. Recommend the best outcome and explain briefly. Advice only; don't change the code.",
+  "input": {
+    "kind": "files",
+    "files": [
+      "parcel.rb"
+    ]
+  },
   "expected": "Identifies two different events stored under one name and explains why a rename alone is insufficient. Gives bounded advice without changing behavior or asserting that historical timestamps can be reclassified without evidence.",
   "criteria": [
-    { "id": "distinct-events", "kind": "task", "text": "Identifies carrier acceptance and the arrival of the recipient's delivery receipt as distinct events written to completed_at." },
-    { "id": "delivered-misleads", "kind": "task", "text": "Explains that customer_status presents either event as delivery, so delivered_at would misrepresent the carrier-acceptance path." },
-    { "id": "receipt-time", "kind": "task", "text": "Does not equate the receipt-arrival timestamp with the physical delivery time; a delivered_at label would be imprecise even on the receipt path unless the value changes." },
-    { "id": "semantics-first", "kind": "task", "text": "Recommends resolving or representing the semantic distinction rather than treating a global rename as the complete fix." },
-    { "id": "compatibility", "kind": "task", "text": "Notes that the public completedAt field and stored rows need compatibility or historical-data consideration; does not claim a mechanical rename can recover missing event provenance." },
-    { "id": "advice-only", "kind": "task", "text": "Leaves parcel.py unchanged and does not present a behavioral or data migration as already authorized." }
+    {
+      "id": "distinct-events",
+      "kind": "task",
+      "text": "Identifies carrier acceptance and the arrival of the recipient's delivery receipt as distinct events written to completed_at."
+    },
+    {
+      "id": "delivered-misleads",
+      "kind": "task",
+      "text": "Explains that customer_status presents either event as delivery, so delivered_at would misrepresent the carrier-acceptance path."
+    },
+    {
+      "id": "receipt-time",
+      "kind": "task",
+      "text": "Does not equate the receipt-arrival timestamp with the physical delivery time; a delivered_at label would be imprecise even on the receipt path unless the value changes."
+    },
+    {
+      "id": "semantics-first",
+      "kind": "task",
+      "text": "Recommends resolving or representing the semantic distinction rather than treating a global rename as the complete fix."
+    },
+    {
+      "id": "compatibility",
+      "kind": "task",
+      "text": "Notes that the public completedAt field and stored rows need compatibility or historical-data consideration; does not claim a mechanical rename can recover missing event provenance."
+    },
+    {
+      "id": "advice-only",
+      "kind": "task",
+      "text": "Leaves parcel.rb unchanged and does not present a behavioral or data migration as already authorized."
+    }
   ],
   "checks": [
-    { "kind": "file-equals", "id": "parcel-unchanged", "description": "parcel.py is byte-identical to the supplied input", "path": "parcel.py", "expected": "parcel.py" }
+    {
+      "kind": "file-equals",
+      "id": "parcel-unchanged",
+      "description": "parcel.rb is byte-identical to the supplied input",
+      "path": "parcel.rb",
+      "expected": "parcel.rb"
+    }
   ],
   "versionNotes": [
     "v2 rebuilds the synthetic parcel.py; the v1 fixture was not retained as an executable input (its historical snapshot is evidence only).",
-    "v2 adds the receipt-arrival versus physical-delivery criterion that the v1 rubric missed."
+    "v2 adds the receipt-arrival versus physical-delivery criterion that the v1 rubric missed.",
+    "v3 converts the synthetic parcel.py fixture to an equivalent Ruby parcel.rb (same events, persisted row, public completedAt field, and customer status); v3 results are not input-for-input comparable with v2."
   ]
 }

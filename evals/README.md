@@ -18,8 +18,8 @@ to use the implementation.
 | `cases/<skill>/<case>/case.json` | Versioned case: prompt, inputs, expected outcome, criteria (`task` or `process`), held-back checks |
 | `cases/<skill>/<case>/…` | Case inputs, expected files, and held-back check scripts (never copied into agent workspaces) |
 | `repositories.json`, `repositories/` | Pinned public repositories, their toolchains, and focused runtimes |
-| `src/` | TypeScript CLI, host adapters, evidence collection, grading, publication, and server |
-| `web/` | React review app (built with Vite) |
+| `exe/evals`, `lib/engineering_evals/` | Ruby CLI: cases, repository runtimes, paired execution, evidence, grading, publication, packets, unmasking |
+| `web/` | SvelteKit review app and read-only evidence routes (adapter-node) |
 | `results/datasets/`, `results/packets/` | Reviewed, publishable evidence: the only data the app serves |
 
 Private state lives outside the repository in `$EVALS_HOME` (default
@@ -29,26 +29,32 @@ Nothing there is served.
 
 ## Requirements
 
-Node 24 or newer and pnpm. Repository cases also need that repository's toolchain;
-Rails needs Ruby 3.1+ with Bundler. Amp runs need `AMP_API_KEY`; Claude Code runs need
-`CLAUDE_CODE_OAUTH_TOKEN` (see below).
+The root `mise.toml` pins Ruby, Node, and pnpm and defines the project commands; run
+them from the repository root. Ruby 3.3 runs both the CLI and the Rails target runtime
+(its pinned nokogiri has no native builds for newer Ruby). Amp runs need `AMP_API_KEY`;
+Claude Code runs need `CLAUDE_CODE_OAUTH_TOKEN` (see below).
 
 ```sh
-cd evals
-pnpm install
-pnpm evals cases           # list cases, versions, inputs, and checks
-pnpm evals fetch rails     # fetch the pinned commit and install its runtime (idempotent)
+mise install
+mise run evals -- cases          # list cases, versions, inputs, and checks
+mise run evals -- fetch rails    # fetch the pinned commit and install its runtime (idempotent)
 ```
+
+The CLI uses only Ruby's standard library, so it has no Gemfile of its own. Every
+child process gets either an exact, whitelisted environment (agent hosts) or the
+operator's environment with Bundler and RubyGems variables removed, so the harness
+never leaks into the Rails runtime's separate Gemfile. `ruby evals/exe/evals <command>`
+works the same way when the pinned tools are already on `PATH`.
 
 ## Run a paired comparison
 
 ```sh
-pnpm evals prepare shaping/background-export implementing --repetitions 2 --model gpt-6-astra
-pnpm evals run <batch> --jobs 4
-pnpm evals status <batch>
-pnpm evals grade <batch>                 # optional model-assisted rubric grading
-pnpm evals publish <batch>               # writes a private preview; read it
-pnpm evals publish <batch> --attest "Reviewed prompts, inputs, answers, diffs, and grades; synthetic and public inputs only."
+mise run evals -- prepare shaping/background-export implementing --repetitions 2 --model gpt-6-astra
+mise run evals -- run <batch> --jobs 4
+mise run evals -- status <batch>
+mise run evals -- grade <batch>          # optional model-assisted rubric grading
+mise run evals -- publish <batch>        # writes a private preview; read it
+mise run evals -- publish <batch> --attest "Reviewed prompts, inputs, answers, diffs, and grades; synthetic and public inputs only."
 ```
 
 `prepare` snapshots each selected case, plans one pair per repetition, randomizes
@@ -58,9 +64,12 @@ independent checkouts of the pinned commit with any seeded overlay committed as 
 input. For Amp, `--model` states which model the mode is expected to use; the
 observed model comes from the thread export.
 
-`run` records each launch before spawning the agent. An interrupted batch resumes
-with `run` again: finished runs are skipped, and a run left `launched` is reported
-as uncertain and never relaunched implicitly. `reset <batch> <run> --reason …`
+`run` records each launch before spawning the agent and streams the agent's trace
+straight to a private file. Each agent runs in its own process group with a one-hour
+limit. An interrupted batch resumes with `run` again: finished runs are skipped, and a
+run left `launched` is reported as uncertain and never relaunched implicitly. (If the
+harness itself is killed, the agent it launched may keep running; that is why such a
+run stays uncertain.) `reset <batch> <run> --reason …`
 archives an attempt and prepares a fresh one when you decide to retry.
 `recollect <batch>` re-derives evidence from preserved transcripts and workspaces
 after an adapter fix, without launching agents.
@@ -100,7 +109,7 @@ that guidance from becoming available. The current Amp runs do not establish thi
 
 ## Claude Code replay
 
-Claude Code is the primary target. The adapter in `src/hosts/claude.ts` follows the
+Claude Code is the primary target. The adapter in `lib/engineering_evals/hosts/claude_code.rb` follows the
 official CLI reference and the stream-json format Amp shares, but **it has not been
 run against real Claude Code output**; datasets from it state that. To replay a
 selection with a subscription instead of API credits:
@@ -108,8 +117,8 @@ selection with a subscription instead of API credits:
 ```sh
 claude setup-token                       # prints a long-lived subscription token
 export CLAUDE_CODE_OAUTH_TOKEN=…         # API keys are deliberately not forwarded
-pnpm evals prepare all --host claude-code --model opus --effort high --seed <seed of the Amp batch>
-pnpm evals run <batch>
+mise run evals -- prepare all --host claude-code --model opus --effort high --seed <seed of the Amp batch>
+mise run evals -- run <batch>
 ```
 
 Each run uses an isolated `CLAUDE_CONFIG_DIR` and `HOME`, and runs `claude -p` with
@@ -122,8 +131,8 @@ the `system/init` and `result` events before trusting model, tool, and token fie
 ## Human calibration
 
 ```sh
-pnpm evals packet pilot-calibration-2 --dataset <dataset> --per-skill 1 --title "…"
-pnpm evals unmask ~/Downloads/pilot-calibration-2-judgments.json --out /private/path.json
+mise run evals -- packet pilot-calibration-2 --dataset <dataset> --per-skill 1 --title "…"
+mise run evals -- unmask ~/Downloads/pilot-calibration-2-judgments.json --out /private/path.json
 ```
 
 A packet holds one item per selected pair with a random A/B assignment. The served
@@ -165,14 +174,28 @@ unchanged; personal judgments and its A/B key are not part of the public corpus.
 ## The review app
 
 ```sh
-pnpm build && pnpm serve                 # http://localhost:4173
+mise run web:build
+PORT=4173 mise run serve                 # http://localhost:4173
 ```
 
-In an orb, `amp orb services ensure` starts the declared `evals` service and prints
-its portal URL. The server serves the built app, a derived index, and JSON files from
-`results/datasets` and `results/packets` by validated id, with a content security
-policy that blocks external images. Model output renders as Markdown without raw HTML
-or image fetching.
+The SvelteKit app (`web/`, built with adapter-node) serves the pages and three
+read-only routes: `/api/index.json`, `/api/datasets/<id>.json`, and
+`/api/packets/<id>.json`. They return the exact bytes of allowlisted files directly
+inside `results/datasets` and `results/packets` (override the directory with
+`EVALS_RESULTS_DIR`); any other `/api` path is 404. Every page carries a content
+security policy that blocks external images. Model output renders as Markdown with
+raw HTML shown as text, images replaced by a placeholder, and only http(s) links
+navigable.
+
+Comparison pages render on the server. Review pages (`/r/<packet>`) render only in the
+browser, because drafts come from that browser's `localStorage` under the unchanged
+`engineering-evals:drafts:v1:` key; the server never sees or renders them. Links from
+the earlier hash-routed app (`/#/d/…`, `/#/r/…`) redirect to the same paths without
+the hash.
+
+In an orb, `amp orb services ensure` builds and starts the declared `evals` service
+through mise and prints its portal URL. For live development, run
+`pnpm --dir evals/web dev` with `mise` tools on `PATH`.
 
 ## Historical pilot
 
@@ -180,14 +203,15 @@ or image fetching.
 normalized once into the current format. It is labelled historical: the runs keep
 their original identities and grades, limitations are annotated, and inputs that were
 not retained are marked missing. Three cases are unchanged (v1, inputs verified by
-Git tree hash); the other nine are rebuilt as v2, so their new results are not
-input-for-input comparable with the pilot.
+Git tree hash); the rest were rebuilt as v2, so their new results are not
+input-for-input comparable with the pilot. The three synthetic cases that used Python
+fixtures are now v3 with equivalent Ruby fixtures (`parcel.rb`, `retries.rb`,
+`labels.rb`); v3 results are not input-for-input comparable with v2 either.
 
 ## Checks for this package
 
 ```sh
-pnpm typecheck
-pnpm build
+mise run check      # ruby -wc on the CLI, `cases` smoke run, svelte-check, production build
 ```
 
 There is no unit test suite; exercise the CLI and the rendered app directly.
