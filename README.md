@@ -8,6 +8,8 @@ Reusable skills for software development:
   emergent scopes, architectural refinement, and independent verification.
 - [naming-things](skills/naming-things/SKILL.md): chooses names and terminology by
   clarifying meaning, behavior, and reader context.
+- [explaining-code](skills/explaining-code/SKILL.md): explains code and code changes
+  using clear language, code examples, and diagrams.
 
 Install with Claude Code:
 
