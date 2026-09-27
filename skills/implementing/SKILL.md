@@ -63,6 +63,10 @@ data integrity.
 
 ## Verification
 
+Use the repository's relevant existing checks to verify the integrated result. Scale verification
+to the changed behavior and affected callers, and make the results and limitations available to
+the independent reviewer.
+
 Consult an oracle—a strong reasoning agent with senior engineering judgement that acts as an
 independent technical advisor. Its role is to challenge assumptions, trace consequences beyond the
 edited code, and assess whether the implementation delivers the intended outcome. Give it the agreed
@@ -70,13 +74,13 @@ outcome, required behavior, and constraints in a fresh context, without the impl
 conversation, and have it inspect the actual changes and surrounding code for itself. For an
 intermediate review, distinguish the scope being assessed from work still planned.
 
-Have it verify the integrated result proportionately and assess correctness, repository guidance,
-fit with the surrounding design, unnecessary complexity, and whether the tests establish the
-required behavior. Where it cannot execute checks itself, run the checks it requests and return the
-results for its assessment.
+Have the advisor assess correctness, repository guidance, fit with the surrounding design,
+unnecessary complexity, and whether the tests and other evidence establish the required behavior.
+Obtain additional evidence where its findings expose a gap.
 
-A scope boundary need not trigger a separate oracle consultation; ensure independent review covers
-the complete integrated result before reporting readiness.
+A scope boundary need not trigger a separate oracle consultation; independent review must cover
+the complete integrated result before reporting readiness. If an independent reviewer is
+unavailable, report that requirement as unmet rather than substituting self-review.
 
 Assess its findings rather than accepting them mechanically. Carry supported, material corrections
 through implementation, verification, and focused follow-up review without waiting for the user to

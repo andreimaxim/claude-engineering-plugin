@@ -1,6 +1,6 @@
 ---
 name: shaping
-description: Shapes rough, solved, bounded solutions. Use when asked to shape work or explore consequential scope, behavior, or architecture choices before implementation; not for routine coding changes.
+description: Shapes rough, solved, bounded solutions. Use when consequential scope, behavior, or architecture choices need exploration or reconsideration, before or during implementation; not for routine, settled changes.
 ---
 
 # Shaping
@@ -84,6 +84,9 @@ do not autonomously converge on an unsettled consequential choice.
 Investigate named assumptions that could invalidate the shape or materially change implementation.
 Ground conclusions in relevant code, tests, external contracts, dependency behavior, or production
 evidence. Restating a proposal is not evidence; architectural comparison is not a prerequisite.
+
+When an assumption is mechanically testable, use the relevant existing tools or checks to obtain
+evidence.
 
 Trace trigger to result, considering failure, concurrency, interruption, migration, security, or
 operational scenarios where they could change the conclusion—not as an audit checklist. Prescribe

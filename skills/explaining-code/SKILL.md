@@ -15,24 +15,17 @@ Helps the reader understand existing code, using clear language, code examples, 
 
 ## Understand the behavior
 
-Start from the relevant boundary, such as a request, public method, command, event, or job. Follow
-the path through the calls, state, data, and integrations that produce its observable result.
+Ground the explanation in enough implementation evidence to establish the relevant triggers,
+observable outcomes, and ownership boundaries. Use tests and contracts where they establish material
+invariants or edge cases. Investigate wherever uncertainty matters rather than following a fixed
+starting point or sequence.
 
-For each coherent path:
+For a change, establish before-and-after behavior from the relevant diff and implementation. Consult
+commit history when useful, but keep observed behavior distinct from stated intent and inference.
+The conversation and commit messages are context, not proof.
 
-1. Identify the trigger and the resulting behavior. When explaining a change, establish the behavior
-   before and after it.
-2. Trace the implementation through only the functions, types, files, data, and ownership
-   boundaries needed to explain that result.
-3. Read relevant tests and contracts when they establish edge cases or invariants.
-4. Distinguish behavior observed in the code from stated intent or inferences from context.
-   Do not turn an inference into a factual claim; state material uncertainty.
-
-When explaining a change, inspect the relevant diff and commit history. Do not rely only on the
-conversation or commit messages to determine what changed.
-
-Read only enough of the repository to explain the behavior. Keep unrelated implementation details
-out of the explanation.
+State material uncertainty. Read only enough to answer the reader's question, and keep unrelated
+implementation details out of the explanation.
 
 ## Explain the behavior first
 

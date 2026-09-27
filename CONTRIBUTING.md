@@ -27,5 +27,9 @@ claude plugin validate .claude-plugin/plugin.json
 claude plugin validate .claude-plugin/marketplace.json
 ```
 
-The plugin intentionally omits `version` so updates track Git commits. The two
-manifest checks report a missing-version warning; other warnings should be fixed.
+The plugin intentionally omits `version` so updates track Git commits. Both manifest
+checks report an expected missing-version warning.
+
+The plugin check also reports that the root `CLAUDE.md` is not loaded as context
+with the installed plugin. This is expected: `CLAUDE.md` guides work on this
+repository. Fix any other warnings.

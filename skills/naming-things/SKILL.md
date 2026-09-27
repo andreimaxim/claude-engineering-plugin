@@ -118,6 +118,8 @@ it makes the recommendation clearer. State unresolved semantics and the evidence
 settle them. Do not impose a formal report on a small naming decision.
 
 For an authorized rename, follow references through the affected code and relevant external
-contracts, including serialized fields, schema, routes, and documentation. Preserve compatibility
-where required; do not treat a public or persisted name as an internal identifier. Run checks
-appropriate to the affected surface and distinguish a verified rename from a proposed model fix.
+contracts, including serialized fields, schema, routes, and documentation. Use available
+symbol-aware reference and rename tools, and inspect dynamic or external references those tools
+may miss. Preserve compatibility where required; do not treat a public or persisted name as an
+internal identifier. Run the repository's relevant checks and distinguish a verified rename from
+a proposed model fix.
