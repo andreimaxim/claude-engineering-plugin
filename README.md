@@ -10,6 +10,8 @@ Reusable skills for software development:
   clarifying meaning, behavior, and reader context.
 - [explaining-code](skills/explaining-code/SKILL.md): explains code and code changes
   using clear language, code examples, and diagrams.
+- [building-skills](skills/building-skills/SKILL.md): authors new portable Agent Skills,
+  including discovery metadata, instructions, and supporting resources.
 
 Install with Claude Code:
 
