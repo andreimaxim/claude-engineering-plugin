@@ -1,0 +1,14 @@
+{
+  "name": "andreimaxim",
+  "description": "A marketplace for andreimaxim's personal agent skills.",
+  "owner": {
+    "name": "andreimaxim"
+  },
+  "plugins": [
+    {
+      "name": "andreimaxim-skills",
+      "source": "./",
+      "description": "A personal collection of agent skills."
+    }
+  ]
+}

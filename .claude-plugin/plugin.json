@@ -1,0 +1,11 @@
+{
+  "name": "andreimaxim-skills",
+  "version": "0.1.0",
+  "description": "A personal collection of agent skills.",
+  "license": "MIT",
+  "author": {
+    "name": "andreimaxim",
+    "url": "https://github.com/andreimaxim"
+  },
+  "repository": "https://github.com/andreimaxim/skills"
+}
