@@ -13,7 +13,7 @@ The repository also includes an optional, standalone main-agent system prompt.
 Add the marketplace and install the plugin:
 
 ```sh
-claude plugin marketplace add andreimaxim/skills
+claude plugin marketplace add andreimaxim/claude-engineering-plugin
 claude plugin install engineering@andreimaxim
 ```
 
