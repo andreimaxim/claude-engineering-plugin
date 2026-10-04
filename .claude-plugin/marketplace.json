@@ -1,0 +1,13 @@
+{
+  "name": "andreimaxim",
+  "description": "A Claude Code plugin for engineering workflows and specialist assistance.",
+  "owner": {
+    "name": "andreimaxim"
+  },
+  "plugins": [
+    {
+      "name": "engineering",
+      "source": "./"
+    }
+  ]
+}
