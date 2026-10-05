@@ -1,14 +1,15 @@
 # Testing
 
 This guide explains how to check changes to this plugin: which commands to run, how the tests
-work, how to write new ones, and how to try the Editor tool in a real session or find out why
-it is missing.
+work, how to write new ones, and how to try the subagents and the Editor tool in a real session or
+find out why they are missing.
 
 The tests live next to the code they cover. [hooks/register.ts](hooks/register.ts) registers
-the Editor tool, and [hooks/register.test.ts](hooks/register.test.ts) tests the tool with Claude
-Code's plugin test kit, `claude-code/testing`. Skills, subagents, and prompts are instructions for the
-model, so no automated test covers them. Check those with `claude plugin validate` and an
-end-to-end run.
+the subagents and the Editor tool, and [hooks/register.test.ts](hooks/register.test.ts) tests
+them with Claude Code's plugin test kit, `claude-code/testing`. The tests check how each subagent
+is registered: its description, prompt file, model, effort, and tools. Skills and prompts are
+instructions for the model, so no automated test covers how well they work. Check those with
+`claude plugin validate` and an end-to-end run.
 
 ## Set up
 
@@ -76,12 +77,14 @@ its own. The hooks the test registers with `on` sit beneath the plugin and stand
 engine, and nothing runs beneath them. There is no model, file system, network, or process.
 
 The test must therefore answer every engine call the plugin makes. A call that nothing answers
-fails with `no implementation for <event>`. The Editor tool needs four answers:
+fails with `no implementation for <event>`. The Editor tool needs five answers, because the
+module's `session.start` hook also registers the subagents and reads their prompts:
 
 ```ts
 on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
+on('agent.register', ($, e) => ({ value: { agent: `normal-swe:${e.name}` } }))
 on('session.start', ($, e) => ({ cwd: e.cwd }))
-on('fs.read', () => ({ value: 'EDITOR PROMPT' }))
+on('fs.read', () => ({ value: 'PROMPT' }))
 on('model.complete', () => ({ value: { isAnswered: true, text: 'Revised draft.', usage: USAGE } }))
 ```
 
@@ -123,11 +126,10 @@ only the real path, and assert on the outcome that depends on it:
 
 ```ts
 // Good — a wrong path is refused, and the request to the model proves the right file was read
-on('fs.read', ($, e) =>
-  e.path.endsWith('/prompts/editor.md')
-    ? { value: 'EDITOR PROMPT' }
-    : { deny: `No such file: ${e.path}` },
-)
+on('fs.read', ($, e) => {
+  const name = PROMPT_PATH.exec(e.path)?.[1]
+  return name ? { value: `${name.toUpperCase()} PROMPT` } : { deny: `No such file: ${e.path}` }
+})
 
 expect(requests[0]?.system).toBe('EDITOR PROMPT')
 
@@ -158,9 +160,13 @@ test('sends the task to Opus with the Editor prompt', ...)
 test('refuses a blank task without calling the model', ...)
 ```
 
-Read together, the names should describe the tool. For the Editor tool:
+Read together, the names should describe the plugin's hooks module:
 
 - The editor tool is offered to the model when a session starts.
+- The four agents are offered with their own description, instructions, model, effort, and tools
+  when a session starts.
+- An agent that cannot be registered is reported without losing the editor tool or the other
+  agents.
 - A draft is revised with the Editor instructions by Opus at low effort.
 - A model failure is reported to the caller.
 - A request without draft text is refused before it reaches the model.
@@ -179,12 +185,12 @@ test('a draft is revised with the Editor instructions by Opus at low effort', as
   const requests: ModelCompleteRequest[] = []
 
   on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
+  on('agent.register', ($, e) => ({ value: { agent: `normal-swe:${e.name}` } }))
   on('session.start', ($, e) => ({ cwd: e.cwd }))
-  on('fs.read', ($, e) =>
-    e.path.endsWith('/prompts/editor.md')
-      ? { value: 'EDITOR PROMPT' }
-      : { deny: `No such file: ${e.path}` },
-  )
+  on('fs.read', ($, e) => {
+    const name = PROMPT_PATH.exec(e.path)?.[1]
+    return name ? { value: `${name.toUpperCase()} PROMPT` } : { deny: `No such file: ${e.path}` }
+  })
   on('model.complete', ($, e) => {
     requests.push(e)
     return { value: { isAnswered: true, text: 'Revised draft.', usage: USAGE } }
@@ -219,7 +225,7 @@ expect(requests).toEqual([expect.objectContaining({ model: 'opus', effort: 'low'
 ```
 
 Write each test's stand-ins and assertions in the test rather than in shared helpers. Small
-shared constants such as `TOOL` and `USAGE` are fine.
+shared constants such as `TOOL`, `PROMPT_PATH`, and `USAGE` are fine.
 
 Compare long messages to the constant the module exports, rather than copying the text or
 checking a fragment:
@@ -251,7 +257,8 @@ untouched.
 ```sh
 tmp=$(mktemp -d) && cp -r .claude-plugin hooks prompts "$tmp"
 rm -rf "$tmp/.claude-plugin/types"
-perl -i -ne 'print unless /maxTokens/' "$tmp/hooks/register.ts"
+grep -v maxTokens "$tmp/hooks/tools/editor.ts" > "$tmp/editor.ts"
+mv "$tmp/editor.ts" "$tmp/hooks/tools/editor.ts"
 claude plugin test "$tmp"                # Expect a failing test
 ```
 
@@ -270,6 +277,16 @@ claude -p --model sonnet --plugin-dir . "Use the editor tool to revise this sent
 Expect the revised text, followed by any notes after a `--- Editor notes ---` line. In an
 interactive session, the call appears in the transcript as `normal-swe - editor (MCP)`.
 
+To check a subagent, ask the main model to delegate to it by name:
+
+```sh
+claude -p --model sonnet --plugin-dir . "Delegate to the normal-swe:oracle agent with this brief: 'Without using any tools, reply with exactly the word PONG.' Then paste its answer verbatim."
+```
+
+Expect `PONG`. Replace `oracle` with `librarian`, `scout`, or `gardener` to check the others. If an
+agent cannot be registered, the transcript shows a line starting with
+`normal-swe could not register the agent`, followed by the agent's name and the reason.
+
 If the tool is missing or fails, add `--debug` and search the newest log in `~/.claude/debug/`
 for these lines:
 
@@ -277,12 +294,13 @@ for these lines:
 | --- | --- |
 | `Plugin "normal-swe" from --plugin-dir overrides installed version` | The working copy replaced the installed plugin. |
 | `hooks module normal-swe@inline loaded (...); events: session.start,tool.call` | Claude Code loaded the module. |
+| `$.agent.register (normal-swe): normal-swe:oracle listed` | The module registered a subagent, one line for each. |
 | `hooks module normal-swe@inline tool.call settled in <n>ms` | The tool ran. `<n>` includes the model call. |
 | `hooks modules not loaded: rollout flag (tengu_plugin_hooks_modules) is off` | This Claude Code version or account does not load hooks modules yet. |
 | `<plugin>: <event> bypassed by cc-plugin-sec-default (tier user)` | An organization security policy skipped the hook. |
 
-Hooks modules are an early-access feature behind a rollout flag. Without them, the plugin still
-loads its skills and subagents, but not the Editor tool. To check an older release, validate
+Hooks modules are an early-access feature behind a rollout flag. Without them, the plugin
+loads only its skills: the subagents and the Editor tool are registered by the hooks module. To check an older release, validate
 the plugin manifest with that version:
 
 ```sh

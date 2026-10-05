@@ -110,26 +110,29 @@ model instructions and other substantial drafts.
 
 ## Agents
 
-[Oracle](agents/oracle.md) (Fable high) reviews code, investigates difficult bugs,
+The plugin's hooks module registers these agents and the Editor tool, so they need a Claude
+Code version that loads hooks modules. Without one, only the skills are available.
+
+[Oracle](prompts/oracle.md) (Fable high) reviews code, investigates difficult bugs,
 and advises on consequential architecture decisions. It examines the relevant code,
 callers, and tests and reports findings or recommendations with supporting evidence.
 It is read-only and does not implement changes. Inspired by
 [Amp's Oracle](https://ampcode.com/docs/tools#oracle).
 
-[Librarian](agents/librarian.md) (Sonnet high) researches local and external code,
+[Librarian](prompts/librarian.md) (Sonnet high) researches local and external code,
 including behavior, architecture, dependencies, and commit history, across multiple
 investigation steps. It returns concise, self-contained answers that explain the
 relevant code and cite sources. It leaves the working checkout unchanged and does
 not execute the code it researches. Inspired by
 [Amp's Librarian](https://ampcode.com/docs/tools#librarian).
 
-[Scout](agents/scout.md) (Sonnet high) investigates proposed changes to identify
+[Scout](prompts/scout.md) (Sonnet high) investigates proposed changes to identify
 affected behavior and consumers, compatibility risks, and unresolved questions.
 It may run focused experiments in disposable environments, leaving the working
 checkout and shared resources unchanged. It returns findings, not an implementation
 or plan.
 
-[Gardener](agents/gardener.md) (Sonnet high) investigates existing code and proposes
+[Gardener](prompts/gardener.md) (Sonnet high) investigates existing code and proposes
 concrete improvements based on design analysis, refactoring techniques, and available
 tools. It may run disposable experiments to test assumptions or compare designs. The
 main agent evaluates and implements the proposals.

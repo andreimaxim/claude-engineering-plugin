@@ -6,9 +6,12 @@ Keep each skill in `skills/<skill-name>/SKILL.md`, with `name` and `description`
 in its YAML frontmatter. The name must match the directory. Keep supporting files
 inside the skill's directory and check that relative links resolve.
 
-Subagents live in `agents/<name>.md`, with their configuration in YAML frontmatter
-and their system prompt in the body. The Editor tool's prompt is `prompts/editor.md`,
-and `hooks/register.ts` registers the tool. Follow the [skill-writing principles](skills/building-skills/SKILL.md#principles)
+`hooks/register.ts` registers the subagents and the Editor tool. Each subagent's
+configuration is in `hooks/agents/<name>.ts`, and its system prompt is
+`prompts/<name>.md`. To add a subagent, create both files and add it to the `AGENTS`
+list in `hooks/register.ts`. The Editor tool's definition and handler are in
+`hooks/tools/editor.ts`, and its prompt is `prompts/editor.md`.
+Follow the [skill-writing principles](skills/building-skills/SKILL.md#principles)
 when editing prompts. Update the README's skills, agents, and tools lists when adding,
 removing, or renaming a skill, agent, or tool.
 
