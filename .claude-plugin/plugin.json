@@ -1,10 +1,10 @@
 {
-  "name": "engineering",
+  "name": "normal-swe",
   "description": "Engineering skills and specialist agents for Claude Code.",
   "license": "MIT",
   "author": {
     "name": "andreimaxim",
     "url": "https://github.com/andreimaxim"
   },
-  "repository": "https://github.com/andreimaxim/claude-engineering-plugin"
+  "repository": "https://github.com/andreimaxim/claude-normal-swe-plugin"
 }

@@ -27,7 +27,7 @@ export const register: Register = (on) => {
     return next(e)
   })
 
-  on('tool.call', { tool: 'mcp__engineering__editor' }, async ($, e) => {
+  on('tool.call', { tool: 'mcp__normal-swe__editor' }, async ($, e) => {
     if (typeof e.task !== 'string' || !e.task.trim()) {
       return { deny: MISSING_TASK }
     }

@@ -79,7 +79,7 @@ The test must therefore answer every engine call the plugin makes. A call that n
 fails with `no implementation for <event>`. The Editor tool needs four answers:
 
 ```ts
-on('tool.register', ($, e) => ({ value: { tool: `mcp__engineering__${e.name}` } }))
+on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
 on('session.start', ($, e) => ({ cwd: e.cwd }))
 on('fs.read', () => ({ value: 'EDITOR PROMPT' }))
 on('model.complete', () => ({ value: { isAnswered: true, text: 'Revised draft.', usage: USAGE } }))
@@ -104,7 +104,7 @@ HooksError: no implementation for tool.call
 
 the engine reported:
   test's tool.register hook was skipped: test: returned neither { value } nor { deny }
-  engineering's session.start hook was skipped: engineering: no implementation for tool.register
+  normal-swe's session.start hook was skipped: normal-swe: no implementation for tool.register
 ```
 
 Each test has 5 seconds. To change that, pass `{ timeoutMs }` as the second argument to `test`.
@@ -178,7 +178,7 @@ arrangement, and starting the session and calling the tool are the act:
 test('a draft is revised with the Editor instructions by Opus at low effort', async ($, on) => {
   const requests: ModelCompleteRequest[] = []
 
-  on('tool.register', ($, e) => ({ value: { tool: `mcp__engineering__${e.name}` } }))
+  on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
   on('session.start', ($, e) => ({ cwd: e.cwd }))
   on('fs.read', ($, e) =>
     e.path.endsWith('/prompts/editor.md')
@@ -268,16 +268,16 @@ claude -p --model sonnet --plugin-dir . "Use the editor tool to revise this sent
 ```
 
 Expect the revised text, followed by any notes after a `--- Editor notes ---` line. In an
-interactive session, the call appears in the transcript as `engineering - editor (MCP)`.
+interactive session, the call appears in the transcript as `normal-swe - editor (MCP)`.
 
 If the tool is missing or fails, add `--debug` and search the newest log in `~/.claude/debug/`
 for these lines:
 
 | Debug log line | Meaning |
 | --- | --- |
-| `Plugin "engineering" from --plugin-dir overrides installed version` | The working copy replaced the installed plugin. |
-| `hooks module engineering@inline loaded (...); events: session.start,tool.call` | Claude Code loaded the module. |
-| `hooks module engineering@inline tool.call settled in <n>ms` | The tool ran. `<n>` includes the model call. |
+| `Plugin "normal-swe" from --plugin-dir overrides installed version` | The working copy replaced the installed plugin. |
+| `hooks module normal-swe@inline loaded (...); events: session.start,tool.call` | Claude Code loaded the module. |
+| `hooks module normal-swe@inline tool.call settled in <n>ms` | The tool ran. `<n>` includes the model call. |
 | `hooks modules not loaded: rollout flag (tengu_plugin_hooks_modules) is off` | This Claude Code version or account does not load hooks modules yet. |
 | `<plugin>: <event> bypassed by cc-plugin-sec-default (tier user)` | An organization security policy skipped the hook. |
 

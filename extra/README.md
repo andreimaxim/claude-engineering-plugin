@@ -1,7 +1,7 @@
 # Custom system prompt
 
 [SYSTEM.md](SYSTEM.md) is an optional, standalone replacement for Claude Code's
-main-agent system prompt. The [engineering plugin](../README.md#installation) neither
+main-agent system prompt. The [Normal SWE plugin](../README.md#installation) neither
 loads nor requires it.
 
 ## What it asks Claude to do

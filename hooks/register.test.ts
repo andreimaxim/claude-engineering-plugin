@@ -2,7 +2,7 @@ import type { ModelCompleteRequest } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
 import { MISSING_TASK } from './register'
 
-const TOOL = 'mcp__engineering__editor'
+const TOOL = 'mcp__normal-swe__editor'
 const USAGE = {
   input_tokens: 0,
   output_tokens: 0,
@@ -14,8 +14,8 @@ test('the editor tool is offered to the model when a session starts', async ($, 
   const registered: string[] = []
 
   on('tool.register', ($, e) => {
-    registered.push(`mcp__engineering__${e.name}`)
-    return { value: { tool: `mcp__engineering__${e.name}` } }
+    registered.push(`mcp__normal-swe__${e.name}`)
+    return { value: { tool: `mcp__normal-swe__${e.name}` } }
   })
   on('session.start', ($, e) => ({ cwd: e.cwd }))
 
@@ -27,7 +27,7 @@ test('the editor tool is offered to the model when a session starts', async ($, 
 test('a draft is revised with the Editor instructions by Opus at low effort', async ($, on) => {
   const requests: ModelCompleteRequest[] = []
 
-  on('tool.register', ($, e) => ({ value: { tool: `mcp__engineering__${e.name}` } }))
+  on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
   on('session.start', ($, e) => ({ cwd: e.cwd }))
   on('fs.read', ($, e) =>
     e.path.endsWith('/prompts/editor.md')
@@ -52,7 +52,7 @@ test('a draft is revised with the Editor instructions by Opus at low effort', as
 })
 
 test('a model failure is reported to the caller', async ($, on) => {
-  on('tool.register', ($, e) => ({ value: { tool: `mcp__engineering__${e.name}` } }))
+  on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
   on('session.start', ($, e) => ({ cwd: e.cwd }))
   on('fs.read', () => ({ value: 'EDITOR PROMPT' }))
   on('model.complete', () => ({
@@ -74,7 +74,7 @@ test('a model failure is reported to the caller', async ($, on) => {
 test('a request without draft text is refused before it reaches the model', async ($, on) => {
   let calls = 0
 
-  on('tool.register', ($, e) => ({ value: { tool: `mcp__engineering__${e.name}` } }))
+  on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
   on('session.start', ($, e) => ({ cwd: e.cwd }))
   on('model.complete', () => {
     calls++

@@ -1,4 +1,4 @@
-# Engineering plugin
+# Normal SWE plugin
 
 A Claude Code plugin with eight skills, four subagents, and an Editor tool for software
 development.
@@ -15,8 +15,8 @@ described under [Extras](#extras).
 Add the marketplace and install the plugin:
 
 ```sh
-claude plugin marketplace add andreimaxim/claude-engineering-plugin
-claude plugin install engineering@andreimaxim
+claude plugin marketplace add andreimaxim/claude-normal-swe-plugin
+claude plugin install normal-swe@andreimaxim
 ```
 
 ## How to use

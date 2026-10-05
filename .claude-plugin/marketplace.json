@@ -6,7 +6,7 @@
   },
   "plugins": [
     {
-      "name": "engineering",
+      "name": "normal-swe",
       "source": "./"
     }
   ]
