@@ -44,7 +44,7 @@ Match commands, examples, and claims to the supplied source. When revising, pres
 structure and the author's intended meaning. Change what obstructs the reader rather than
 rewriting merely for a different style.
 
-Once the draft is complete, ask the Editor subagent to revise it. Give it the draft,
+Once the draft is complete, ask the Editor tool to revise it. Give it the draft,
 intended audience, requested tone, and relevant source excerpts and constraints. Assess its
 revision for factual accuracy and preserved meaning, then apply accepted changes yourself.
 Resolve its notes separately rather than copying them into the document.

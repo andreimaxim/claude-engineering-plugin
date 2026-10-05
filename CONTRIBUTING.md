@@ -7,9 +7,10 @@ in its YAML frontmatter. The name must match the directory. Keep supporting file
 inside the skill's directory and check that relative links resolve.
 
 Subagents live in `agents/<name>.md`, with their configuration in YAML frontmatter
-and their system prompt in the body. Follow the [skill-writing principles](skills/building-skills/SKILL.md#principles)
-when editing prompts. Update the README's skills and agents lists when adding,
-removing, or renaming a skill or agent.
+and their system prompt in the body. The Editor tool's prompt is `prompts/editor.md`,
+and `hooks/register.ts` registers the tool. Follow the [skill-writing principles](skills/building-skills/SKILL.md#principles)
+when editing prompts. Update the README's skills, agents, and tools lists when adding,
+removing, or renaming a skill, agent, or tool.
 
 The standalone main-agent prompt is in `extra/SYSTEM.md`. Its [README](extra/README.md)
 explains how to load it. Plugin installation does not load that file.
@@ -36,7 +37,16 @@ claude plugin validate .claude-plugin/plugin.json
 claude plugin validate .claude-plugin/marketplace.json
 ```
 
-These commands validate manifests, not prompt behavior.
+These commands validate manifests, not prompt behavior. To check the hooks module
+and run its tests, which do not call a model, run:
+
+```sh
+claude plugin validate .
+claude plugin test .
+```
+
+[TESTING.md](TESTING.md) explains how the tests work, how to write them, and how to
+check the Editor tool end to end.
 
 The plugin intentionally omits `version` so updates track Git commits. The
 missing-version warning is expected. The plugin check also warns that root

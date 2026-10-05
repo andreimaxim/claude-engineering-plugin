@@ -1,0 +1,7 @@
+[tool_alias]
+oxfmt = "github:oxc-project/oxc"
+
+[tools]
+bun = "1.4"
+oxlint = "1"
+oxfmt = { version = "0.71", version_prefix = "oxfmt_v", matching = "oxfmt", rename_exe = "oxfmt" }
