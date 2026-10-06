@@ -41,3 +41,31 @@ export const reviseDraft: MatchedHook<'tool.call', { tool: 'mcp__normal-swe__edi
 
   return reply.isAnswered ? { result: reply.text } : { deny: `Editor failed: ${reply.reason}` }
 }
+
+type EditorRow = { isRunning: boolean; isErrored: boolean; isInterrupted: boolean }
+
+// Draws the editor's transcript row as one dim line, spaced and indented like the engine's folded
+// tool rows, so the draft never fills the screen. The transcript still stores the call whole.
+export const drawEditorRow: MatchedHook<
+  'ui.render',
+  { component: 'ToolUse'; props: { tool: 'mcp__normal-swe__editor' } }
+> = ($, e) => ({
+  type: 'Box',
+  props: { marginTop: 1, marginLeft: 2 },
+  children: [{ type: 'Text', props: { dimColor: true }, children: [describeEditorRow(e.props)] }],
+})
+
+// Draws nothing under the editor's row: the caller applies the revision, so the transcript need
+// not show it. The model still reads the full result. A failure's reason is drawn as the engine
+// draws any tool's, since nothing else on the screen says why the Editor did not answer.
+export const hideEditorResult: MatchedHook<
+  'ui.render',
+  { component: 'ToolResult'; props: { tool: 'mcp__normal-swe__editor' } }
+> = ($, e, next) => (e.props.isErrored ? next(e) : { type: 'Box', props: { display: 'none' } })
+
+export function describeEditorRow({ isRunning, isErrored, isInterrupted }: EditorRow): string {
+  if (isInterrupted) return 'The Editor was interrupted.'
+  if (isErrored) return 'The Editor could not revise the draft.'
+  if (isRunning) return 'Asking the Editor to revise a draft…'
+  return 'Asked the Editor to revise a draft.'
+}

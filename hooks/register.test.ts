@@ -203,3 +203,122 @@ test('a request without draft text is refused before it reaches the model', asyn
   expect(reply.deny).toBe(MISSING_TASK)
   expect(calls).toBe(0)
 })
+
+const EDITOR_ROW = {
+  tool_use_id: 'call-1',
+  tool: TOOL,
+  input: { task: "Revise the draft below.\n\nIn today's fast-paced development landscape..." },
+  isRunning: true,
+  isErrored: false,
+  isInterrupted: false,
+}
+
+const BASH_ROW = {
+  tool_use_id: 'call-2',
+  tool: 'Bash',
+  input: { command: 'ls', description: 'List files' },
+  isRunning: false,
+  isErrored: false,
+  isInterrupted: false,
+}
+
+test('the transcript row of an editor call is one dim line that names what Editor is doing, never the draft', async ($, on) => {
+  const engineDrew: unknown[] = []
+  on('ui.render', ($, e) => {
+    engineDrew.push(e.props)
+    return { type: 'Text', children: [] }
+  })
+
+  const line = (text: string) => ({
+    type: 'Box',
+    props: { marginTop: 1, marginLeft: 2 },
+    children: [{ type: 'Text', props: { dimColor: true }, children: [text] }],
+  })
+
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({
+      plugin: 'normal-swe',
+      surface,
+      component: 'ToolUse',
+      props: EDITOR_ROW,
+    })
+
+    expect(await ui.drawn()).toEqual(line('Asking the Editor to revise a draft…'))
+
+    await ui.redraw({ ...EDITOR_ROW, isRunning: false, output: 'REVISED' })
+    expect(await ui.drawn()).toEqual(line('Asked the Editor to revise a draft.'))
+
+    await ui.redraw({ ...EDITOR_ROW, isRunning: false, isErrored: true, output: 'Editor failed' })
+    expect(await ui.drawn()).toEqual(line('The Editor could not revise the draft.'))
+
+    // An abort marks the call both interrupted and errored.
+    await ui.redraw({ ...EDITOR_ROW, isRunning: false, isErrored: true, isInterrupted: true })
+    expect(await ui.drawn()).toEqual(line('The Editor was interrupted.'))
+
+    await ui.unmount()
+  }
+
+  expect(engineDrew).toEqual([])
+})
+
+test("the revised text is not drawn under the editor's transcript row, but a failure's reason is", async ($, on) => {
+  const engineDrew: unknown[] = []
+  on('ui.render', ($, e) => {
+    engineDrew.push(e.props)
+    return { type: 'Text', children: ['ENGINE'] }
+  })
+
+  const result = { tool_use_id: 'call-1', tool: TOOL, output: 'REVISED', isErrored: false }
+
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({
+      plugin: 'normal-swe',
+      surface,
+      component: 'ToolResult',
+      props: result,
+    })
+
+    expect(await ui.drawn()).toEqual({ type: 'Box', props: { display: 'none' } })
+    expect(engineDrew).toEqual([])
+
+    await ui.redraw({ ...result, output: 'Editor failed: no answer', isErrored: true })
+    expect(await ui.drawn()).toEqual({ type: 'Text', children: ['ENGINE'] })
+    expect(engineDrew).toEqual([{ ...result, output: 'Editor failed: no answer', isErrored: true }])
+
+    await ui.unmount()
+    engineDrew.length = 0
+  }
+})
+
+test("the transcript rows of another tool's call are drawn as the engine has them", async ($, on) => {
+  const engineDrew: unknown[] = []
+  on('ui.render', ($, e) => {
+    engineDrew.push(e.props)
+    return { type: 'Text', children: [e.component] }
+  })
+
+  const row = await $.ui.render({
+    surface: 'terminal',
+    component: 'ToolUse',
+    requestId: 'call-2',
+    props: BASH_ROW,
+  })
+  const result = await $.ui.render({
+    surface: 'terminal',
+    component: 'ToolResult',
+    requestId: 'call-2',
+    props: {
+      tool_use_id: 'call-2',
+      tool: 'Bash',
+      output: { stdout: '', stderr: '' },
+      isErrored: false,
+    },
+  })
+
+  expect(row).toEqual({ type: 'Text', children: ['ToolUse'] })
+  expect(result).toEqual({ type: 'Text', children: ['ToolResult'] })
+  expect(engineDrew).toEqual([
+    BASH_ROW,
+    { tool_use_id: 'call-2', tool: 'Bash', output: { stdout: '', stderr: '' }, isErrored: false },
+  ])
+})

@@ -170,6 +170,10 @@ Read together, the names should describe the plugin's hooks module:
 - A draft is revised with the Editor instructions by Opus at low effort.
 - A model failure is reported to the caller.
 - A request without draft text is refused before it reaches the model.
+- The transcript row of an editor call is one dim line that names what Editor is doing, never
+  the draft.
+- The revised text is not drawn under the editor's transcript row, but a failure's reason is.
+- The transcript rows of another tool's call are drawn as the engine has them.
 
 Give a behavior its own test when it is part of the tool's contract or can break independently.
 Registration is an example, because the tool name the model sees can change without affecting a
@@ -275,7 +279,11 @@ claude -p --model sonnet --plugin-dir . "Use the editor tool to revise this sent
 ```
 
 Expect the revised text, followed by any notes after a `--- Editor notes ---` line. In an
-interactive session, the call appears in the transcript as `normal-swe - editor (MCP)`.
+interactive session, the call appears in the transcript as one dim line, `Asking the Editor to
+revise a draft…` while it runs and `Asked the Editor to revise a draft.` once it has, with nothing
+drawn under it. A failed call reads `The Editor could not revise the draft.` with the error drawn
+under it as for any tool. The module's `ui.render` hooks draw those rows alone; the model still
+receives the task and the revision, and the transcript stores both whole.
 
 To check a subagent, ask the main model to delegate to it by name:
 
@@ -293,7 +301,7 @@ for these lines:
 | Debug log line | Meaning |
 | --- | --- |
 | `Plugin "normal-swe" from --plugin-dir overrides installed version` | The working copy replaced the installed plugin. |
-| `hooks module normal-swe@inline loaded (...); events: session.start,tool.call` | Claude Code loaded the module. |
+| `hooks module normal-swe@inline loaded (...); events: session.start,tool.call,ui.render` | Claude Code loaded the module. |
 | `$.agent.register (normal-swe): normal-swe:oracle listed` | The module registered a subagent, one line for each. |
 | `hooks module normal-swe@inline tool.call settled in <n>ms` | The tool ran. `<n>` includes the model call. |
 | `hooks modules not loaded: rollout flag (tengu_plugin_hooks_modules) is off` | This Claude Code version or account does not load hooks modules yet. |

@@ -3,7 +3,7 @@ import { gardener } from './agents/gardener'
 import { librarian } from './agents/librarian'
 import { oracle } from './agents/oracle'
 import { scout } from './agents/scout'
-import { editor, reviseDraft } from './tools/editor'
+import { drawEditorRow, editor, hideEditorResult, reviseDraft } from './tools/editor'
 
 export const AGENT_NOT_REGISTERED = 'normal-swe could not register the agent'
 
@@ -29,4 +29,14 @@ export const register: Register = (on) => {
   })
 
   on('tool.call', { tool: 'mcp__normal-swe__editor' }, reviseDraft)
+  on(
+    'ui.render',
+    { component: 'ToolUse', props: { tool: 'mcp__normal-swe__editor' } },
+    drawEditorRow,
+  )
+  on(
+    'ui.render',
+    { component: 'ToolResult', props: { tool: 'mcp__normal-swe__editor' } },
+    hideEditorResult,
+  )
 }
