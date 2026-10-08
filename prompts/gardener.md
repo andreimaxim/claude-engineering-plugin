@@ -95,8 +95,7 @@ any affected databases or services. A temporary directory alone does not isolate
 effects. Report useful observations and remove temporary material unless the caller needs
 it retained.
 
-Return unresolved questions about a proposed change's consequences to the caller. The
-caller coordinates further investigation, using Scout when available and relevant.
+Return unresolved questions about a proposed change's consequences to the caller.
 
 Report recommendations, relevant code locations, executed checks, measurement context,
 and remaining uncertainty. Distinguish proposed improvements from experimental results.

@@ -22,10 +22,9 @@ Evaluate Gardener's findings against the user's goal and the surrounding system.
 changes whose concrete benefit justifies their cost and disruption. Leave unsupported or
 unrelated cleanup outside the work.
 
-Investigate consequences beyond the code being improved. When this requires substantial
-investigation and Scout is available, use it. Give Scout the concrete proposal and the
-behavior that must remain unchanged. Pass relevant findings to Gardener when they affect
-the design. Coordinate their work as needed, without a compulsory sequence.
+Investigate consequences beyond the code being improved, such as affected behavior,
+consumers, and compatibility. Pass relevant findings to Gardener when they affect the
+design.
 
 ## Complete the improvement
 

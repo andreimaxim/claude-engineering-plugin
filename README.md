@@ -65,8 +65,7 @@ These skills do not change Claude Code's native Plan mode or permissions.
 
 Use `improving-code` to improve the design of existing code. When the design needs
 substantial investigation, the Gardener subagent investigates it and proposes concrete
-improvements, and the Scout subagent can assess how a proposal affects behavior and
-consumers. The main agent chooses which improvements to make, implements and verifies
+improvements. The main agent chooses which improvements to make, implements and verifies
 them, and obtains an independent review. For substantial changes, the main agent can
 use `implementing`, with the Oracle subagent reviewing the integrated result.
 
@@ -125,12 +124,6 @@ investigation steps. It returns concise, self-contained answers that explain the
 relevant code and cite sources. It leaves the working checkout unchanged and does
 not execute the code it researches. Inspired by
 [Amp's Librarian](https://ampcode.com/docs/tools#librarian).
-
-[Scout](prompts/scout.md) (Sonnet high) investigates proposed changes to identify
-affected behavior and consumers, compatibility risks, and unresolved questions.
-It may run focused experiments in disposable environments, leaving the working
-checkout and shared resources unchanged. It returns findings, not an implementation
-or plan.
 
 [Gardener](prompts/gardener.md) (Sonnet high) investigates existing code and proposes
 concrete improvements based on design analysis, refactoring techniques, and available

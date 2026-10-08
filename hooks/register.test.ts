@@ -4,7 +4,7 @@ import { AGENT_NOT_REGISTERED } from './register'
 import { MISSING_TASK } from './tools/editor'
 
 const TOOL = 'mcp__normal-swe__editor'
-const PROMPT_PATH = /\/prompts\/(editor|oracle|librarian|scout|gardener)\.md$/
+const PROMPT_PATH = /\/prompts\/(editor|oracle|librarian|gardener)\.md$/
 const USAGE = {
   input_tokens: 0,
   output_tokens: 0,
@@ -30,7 +30,7 @@ test('the editor tool is offered to the model when a session starts', async ($, 
   expect(registered).toEqual([TOOL])
 })
 
-test('the four agents are offered with their own description, instructions, model, effort, and tools when a session starts', async ($, on) => {
+test('the three agents are offered with their own description, instructions, model, effort, and tools when a session starts', async ($, on) => {
   const agents = new Map<string, Record<string, unknown>>()
 
   on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
@@ -46,7 +46,7 @@ test('the four agents are offered with their own description, instructions, mode
 
   await $.session.start({ cwd: '/work', surface: null, isInteractive: false })
 
-  expect([...agents.keys()].sort()).toEqual(['gardener', 'librarian', 'oracle', 'scout'])
+  expect([...agents.keys()].sort()).toEqual(['gardener', 'librarian', 'oracle'])
 
   expect(agents.get('oracle')?.description).toBe(
     'Read-only expert advisor for focused code reviews, difficult debugging, and consequential architecture questions. Use when explicitly requested or when direct investigation leaves a specific high-impact question unresolved.',
@@ -66,23 +66,6 @@ test('the four agents are offered with their own description, instructions, mode
     'Read',
     'Glob',
     'Grep',
-    'Bash',
-    'WebSearch',
-    'WebFetch',
-  ])
-
-  expect(agents.get('scout')?.description).toBe(
-    'Investigates proposed software changes. Use before implementation when consequences for consumers, stored data, behavior, or compatibility require substantial investigation.',
-  )
-  expect(agents.get('scout')?.prompt).toBe('SCOUT PROMPT')
-  expect(agents.get('scout')?.model).toBe('sonnet')
-  expect(agents.get('scout')?.effort).toBe('high')
-  expect(agents.get('scout')?.tools).toEqual([
-    'Read',
-    'Glob',
-    'Grep',
-    'Edit',
-    'Write',
     'Bash',
     'WebSearch',
     'WebFetch',
@@ -132,7 +115,7 @@ test('an agent that cannot be registered is reported without losing the editor t
   await $.session.start({ cwd: '/work', surface: null, isInteractive: false })
 
   expect(tools).toEqual([TOOL])
-  expect(agents).toEqual(['librarian', 'scout', 'gardener'])
+  expect(agents).toEqual(['librarian', 'gardener'])
   expect(logged).toHaveLength(1)
   expect(logged[0]).toStartWith(`${AGENT_NOT_REGISTERED} oracle: `)
 })

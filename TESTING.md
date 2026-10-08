@@ -291,7 +291,7 @@ To check a subagent, ask the main model to delegate to it by name:
 claude -p --model sonnet --plugin-dir . "Delegate to the normal-swe:oracle agent with this brief: 'Without using any tools, reply with exactly the word PONG.' Then paste its answer verbatim."
 ```
 
-Expect `PONG`. Replace `oracle` with `librarian`, `scout`, or `gardener` to check the others. If an
+Expect `PONG`. Replace `oracle` with `librarian` or `gardener` to check the others. If an
 agent cannot be registered, the transcript shows a line starting with
 `normal-swe could not register the agent`, followed by the agent's name and the reason.
 
