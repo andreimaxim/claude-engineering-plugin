@@ -1,13 +1,17 @@
 ---
-name: technical-writing
-description: "Writes and revises technical documents for their intended readers. Applies to developer documentation, operational procedures, design proposals, plans, ticket solutions, and PR descriptions."
+name: writing-for-readers
+description: "Writes and revises text for people outside the conversation, organized around what each reader needs to do or understand. Applies to documentation, procedures, design proposals, plans, ticket solutions, PR and commit descriptions, issue and ticket comments, release notes, emails, announcements, and posts. Does not apply to conversational replies or to model instructions, which writing-prompts covers."
 ---
 
-# Technical writing
+# Writing for readers
 
-Write or revise technical documents around what the intended reader needs to accomplish or
-understand. Establish the audience, purpose, and assumed knowledge from the request and
-existing documentation.
+Write or revise text around what its intended reader needs to accomplish or understand.
+Establish the audience, purpose, and assumed knowledge from the request, existing material,
+and where the text will be read.
+
+This covers text that someone outside the conversation will read. Replies within the
+conversation are out of scope. For prompts, skills, subagent briefs, and other model
+instructions, use `writing-prompts`.
 
 For example:
 
@@ -30,10 +34,22 @@ For example:
 - A developer reviewing a PR that changes payment retries needs the reason for the change,
   its effect on behavior, and the evidence supporting it. Highlight risks and verification
   gaps instead of narrating the diff file by file.
+- A developer reading `git log` months later needs to know why a commit was made. The diff
+  already shows which files changed.
+- A support lead reading an email about a delayed release needs the new date, which customers
+  are affected, and what to tell those customers until the release ships. Explain the
+  engineering cause in one sentence at most.
+- A customer reading an announcement that a feature is being retired needs to know whether the
+  retirement affects them, when the feature will stop working, and what to use instead. Put
+  this information before the reasons for the change.
 
 A README may have several purposes. Organize its sections by what readers need to do or
 understand, so they can find what they need without reading unrelated material. For plans,
 pitches, and design documents, follow the relevant template or agreed structure.
+
+Fit the length and order to how the text will be read. Readers skim a chat message, an email,
+or a commit subject, so put the point or the request first. A design document can build
+context before its conclusions.
 
 For procedures, make prerequisites, conditions, and observable results explicit. Place
 warnings before the actions they constrain. Organize reference material by the system it
@@ -44,9 +60,11 @@ Match commands, examples, and claims to the supplied source. When revising, pres
 structure and the author's intended meaning. Change what obstructs the reader rather than
 rewriting merely for a different style.
 
-Once the draft is complete, ask the Editor tool to revise it. Give it the draft,
-intended audience, requested tone, and relevant source excerpts and constraints. Assess its
-revision for factual accuracy and preserved meaning, then apply accepted changes yourself.
-Resolve its notes separately rather than copying them into the document.
+Revise short text, such as a commit message or a brief comment, directly. Once a substantial
+draft is complete, such as a document or a message of several paragraphs, ask the Editor
+subagent to revise it. Give it the draft, intended audience, requested tone, and relevant
+source excerpts and constraints. Assess its revision for factual accuracy and preserved
+meaning, then apply accepted changes yourself. Resolve its notes separately rather than
+copying them into the text.
 The main agent remains responsible for the content and structure. If Editor is unavailable,
 revise the draft directly and report that the Editor pass could not be performed.

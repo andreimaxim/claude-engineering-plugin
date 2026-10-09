@@ -1,11 +1,11 @@
 # Testing
 
 This guide explains how to check changes to this plugin: which commands to run, how the tests
-work, how to write new ones, and how to try the subagents and the Editor tool in a real session or
-find out why they are missing.
+work, how to write new ones, and how to try the subagents in a real session or find out why they
+are missing.
 
 The tests live next to the code they cover. [hooks/register.ts](hooks/register.ts) registers
-the subagents and the Editor tool, and [hooks/register.test.ts](hooks/register.test.ts) tests
+the subagents, and [hooks/register.test.ts](hooks/register.test.ts) tests
 them with Claude Code's plugin test kit, `claude-code/testing`. The tests check how each subagent
 is registered: its description, prompt file, model, effort, and tools. Skills and prompts are
 instructions for the model, so no automated test covers how well they work. Check those with
@@ -77,21 +77,19 @@ its own. The hooks the test registers with `on` sit beneath the plugin and stand
 engine, and nothing runs beneath them. There is no model, file system, network, or process.
 
 The test must therefore answer every engine call the plugin makes. A call that nothing answers
-fails with `no implementation for <event>`. The Editor tool needs five answers, because the
-module's `session.start` hook also registers the subagents and reads their prompts:
+fails with `no implementation for <event>`. Starting a session needs three answers, because the
+module's `session.start` hook reads each subagent's prompt and registers the subagent:
 
 ```ts
-on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
 on('agent.register', ($, e) => ({ value: { agent: `normal-swe:${e.name}` } }))
 on('session.start', ($, e) => ({ cwd: e.cwd }))
 on('fs.read', () => ({ value: 'PROMPT' }))
-on('model.complete', () => ({ value: { isAnswered: true, text: 'Revised draft.', usage: USAGE } }))
 ```
 
 Answers take one of two shapes:
 
-- Operations the plugin calls on `$`, such as `$.tool.register`, `$.fs.read`, and
-  `$.model.complete`, take `{ value }` or `{ deny }`. The engine skips any other answer and reports
+- Operations the plugin calls on `$`, such as `$.agent.register`, `$.fs.read`, and
+  `$.ui.log`, take `{ value }` or `{ deny }`. The engine skips any other answer and reports
   `returned neither { value } nor { deny }`.
 - Events, such as `session.start`, take the event's own result, here `{ cwd }`.
 
@@ -103,37 +101,35 @@ When a test fails, the output lists each hook the engine skipped and why. Read t
 because a skipped stand-in usually explains the assertion failure that follows.
 
 ```text
-HooksError: no implementation for tool.call
-
 the engine reported:
-  test's tool.register hook was skipped: test: returned neither { value } nor { deny }
-  normal-swe's session.start hook was skipped: normal-swe: no implementation for tool.register
+  test's agent.register hook was skipped: test: returned neither { value } nor { deny }
+  [normal-swe] $.ui.log dropped: HooksError: no implementation for ui.log
 ```
 
 Each test has 5 seconds. To change that, pass `{ timeoutMs }` as the second argument to `test`.
-A test can import from the module it tests, such as the exported `MISSING_TASK` message.
+A test can import from the module it tests, such as the exported `AGENT_NOT_REGISTERED` message.
 
 ## Testing approach
 
 Treat tests as executable specifications of what the plugin does at the engine boundary: what it
-registers, what it sends to the model, and what it returns to the caller. Assert those outcomes,
-not the steps the plugin takes to produce them. A refactoring that keeps the same requests and
-replies should not require test changes.
+registers and what it reports when registration fails. Assert those outcomes, not the steps the
+plugin takes to produce them. A refactoring that registers the same agents and reports the same
+failures should not require test changes.
 
 Because the test answers every engine call, make each answer behave like the real engine. A
 file-system stand-in that returns the prompt for any path would let a wrong path pass. Answer
 only the real path, and assert on the outcome that depends on it:
 
 ```ts
-// Good — a wrong path is refused, and the request to the model proves the right file was read
+// Good — a wrong path is refused, and the registered prompt proves the right file was read
 on('fs.read', ($, e) => {
   const name = PROMPT_PATH.exec(e.path)?.[1]
   return name ? { value: `${name.toUpperCase()} PROMPT` } : { deny: `No such file: ${e.path}` }
 })
 
-expect(requests[0]?.system).toBe('EDITOR PROMPT')
+expect(agents.get('editor')?.prompt).toBe('EDITOR PROMPT')
 
-// Bad — records how the prompt is loaded instead of what reaches the model
+// Bad — records how the prompt is loaded instead of what the agent receives
 on('fs.read', ($, e) => {
   reads.push(e.path)
   return { value: 'EDITOR PROMPT' }
@@ -143,116 +139,105 @@ expect(reads).toEqual([expect.stringMatching(/\/prompts\/editor\.md$/)])
 ```
 
 Record calls to an operation only when the call itself is the behavior under test, as with the
-request sent to `model.complete`.
+agents passed to `agent.register`.
 
 ## Test names state facts
 
-Name each test as a fact about the tool, in words a plugin user would understand. Name the
+Name each test as a fact about the plugin, in words a plugin user would understand. Name the
 behavior, not the code that exercises it, and include the condition when it distinguishes the case.
 
 ```ts
-// Good — facts about the tool
-test('the editor tool is offered to the model when a session starts', ...)
-test('a request without draft text is refused before it reaches the model', ...)
+// Good — facts about the plugin
+test('the four agents are offered with their own description, instructions, model, effort, and tools when a session starts', ...)
+test('an agent that cannot be registered is reported without losing the other agents', ...)
 
 // Bad — names code and calls
-test('sends the task to Opus with the Editor prompt', ...)
-test('refuses a blank task without calling the model', ...)
+test('calls agent.register for each entry in AGENTS', ...)
+test('catches a denied agent.register and calls ui.log', ...)
 ```
 
 Read together, the names should describe the plugin's hooks module:
 
-- The editor tool is offered to the model when a session starts.
 - The four agents are offered with their own description, instructions, model, effort, and tools
   when a session starts.
-- An agent that cannot be registered is reported without losing the editor tool or the other
-  agents.
-- A draft is revised with the Editor instructions by Opus at low effort.
-- A model failure is reported to the caller.
-- A request without draft text is refused before it reaches the model.
-- The transcript row of an editor call is one dim line that names what Editor is doing, never
-  the draft.
-- The revised text is not drawn under the editor's transcript row, but a failure's reason is.
-- The transcript rows of another tool's call are drawn as the engine has them.
+- An agent that cannot be registered is reported without losing the other agents.
 
-Give a behavior its own test when it is part of the tool's contract or can break independently.
-Registration is an example, because the tool name the model sees can change without affecting a
-revision. Do not add a test for a fact that another test already proves.
+Give a behavior its own test when it is part of the plugin's contract or can break independently.
+A refused agent is an example, because the module can stop registering after a refusal while every
+agent's configuration stays correct. Do not add a test for a fact that another test already proves.
 
 ## Use whitespace to show structure
 
 Separate arrange, act, and assert with blank lines. In these tests, the engine stand-ins are the
-arrangement, and starting the session and calling the tool are the act:
+arrangement, and starting the session is the act:
 
 ```ts
-test('a draft is revised with the Editor instructions by Opus at low effort', async ($, on) => {
-  const requests: ModelCompleteRequest[] = []
+test('an agent that cannot be registered is reported without losing the other agents', async ($, on) => {
+  const agents: string[] = []
+  const logged: string[] = []
 
-  on('tool.register', ($, e) => ({ value: { tool: `mcp__normal-swe__${e.name}` } }))
-  on('agent.register', ($, e) => ({ value: { agent: `normal-swe:${e.name}` } }))
+  on('agent.register', ($, e) => {
+    if (e.name === 'oracle') return { deny: 'refused by policy' }
+    agents.push(e.name)
+    return { value: { agent: `normal-swe:${e.name}` } }
+  })
+  on('fs.read', ($, e) =>
+    PROMPT_PATH.test(e.path) ? { value: 'PROMPT' } : { deny: `No such file: ${e.path}` },
+  )
+  on('ui.log', ($, e) => {
+    logged.push(e.text)
+    return { value: undefined }
+  })
   on('session.start', ($, e) => ({ cwd: e.cwd }))
-  on('fs.read', ($, e) => {
-    const name = PROMPT_PATH.exec(e.path)?.[1]
-    return name ? { value: `${name.toUpperCase()} PROMPT` } : { deny: `No such file: ${e.path}` }
-  })
-  on('model.complete', ($, e) => {
-    requests.push(e)
-    return { value: { isAnswered: true, text: 'Revised draft.', usage: USAGE } }
-  })
 
   await $.session.start({ cwd: '/work', surface: null, isInteractive: false })
-  const reply = await $.tool.call({ tool: TOOL, task: 'Draft: It serves as a robust foundation.' })
 
-  expect(reply.result).toBe('Revised draft.')
-  expect(requests).toHaveLength(1)
-  expect(requests[0]?.model).toBe('opus')
-  expect(requests[0]?.effort).toBe('low')
-  expect(requests[0]?.maxTokens).toBe(32000)
-  expect(requests[0]?.system).toBe('EDITOR PROMPT')
-  expect(requests[0]?.prompt).toBe('Draft: It serves as a robust foundation.')
+  expect(agents).toEqual(['librarian', 'gardener', 'editor'])
+  expect(logged).toHaveLength(1)
+  expect(logged[0]).toStartWith(`${AGENT_NOT_REGISTERED} oracle: `)
 })
 ```
 
 ## Keep expectations separate and visible
 
-Assert each expectation separately, so a failure names what broke. Assert the number of calls
-separately from their contents:
+Assert each expectation separately, so a failure names what broke. Assert which agents were
+registered separately from how each is configured:
 
 ```ts
-// Good — the count and each field fail on their own
-expect(requests).toHaveLength(1)
-expect(requests[0]?.model).toBe('opus')
-expect(requests[0]?.maxTokens).toBe(32000)
+// Good — the set of agents and each field fail on their own
+expect([...agents.keys()].sort()).toEqual(['editor', 'gardener', 'librarian', 'oracle'])
+expect(agents.get('editor')?.model).toBe('opus')
+expect(agents.get('editor')?.tools).toEqual([])
 
-// Bad — one failure for any difference, and maxTokens is not checked at all
-expect(requests).toEqual([expect.objectContaining({ model: 'opus', effort: 'low' })])
+// Bad — one failure for any difference, and tools is not checked at all
+expect(agents.get('editor')).toEqual(expect.objectContaining({ model: 'opus', effort: 'low' }))
 ```
 
 Write each test's stand-ins and assertions in the test rather than in shared helpers. Small
-shared constants such as `TOOL`, `PROMPT_PATH`, and `USAGE` are fine.
+shared constants such as `PROMPT_PATH` are fine.
 
 Compare long messages to the constant the module exports, rather than copying the text or
 checking a fragment:
 
 ```ts
 // Good
-expect(reply.deny).toBe(MISSING_TASK)
+expect(logged[0]).toStartWith(`${AGENT_NOT_REGISTERED} oracle: `)
 
 // Bad — passes for any message that mentions the phrase
-expect(reply.deny).toContain('full draft text')
+expect(logged[0]).toContain('could not register')
 ```
 
 ## Ask what a wrong implementation would get past
 
 Coverage shows which lines ran, not whether the tests would notice a plausible mistake. Check for
-mistakes directly. For the Editor tool:
+mistakes directly. For the subagents:
 
-- Removing `maxTokens: 32000` would cut long drafts off at the 1024-token default. A test that
-  checks only `model` and `effort` misses it.
-- Returning `{ result }` when the model call fails would hide the failure from the caller. Only a
-  test with a failed model call catches it.
-- Reading the wrong prompt path would break every call. The path-checking `fs.read` stand-in
-  catches it.
+- Removing `tools: []` from the Editor would give it every tool the parent has, including Edit and
+  Bash. A test that checks only `model` and `effort` misses it.
+- Moving the `try` outside the loop would let one refused agent cost the others. Only a test with
+  a refused agent catches it.
+- Reading the wrong prompt path would leave an agent without its instructions. The path-checking
+  `fs.read` stand-in catches it.
 
 To check a mistake, copy the plugin to a temporary folder, change one line there, and run
 `claude plugin test` in that folder. A test should fail. Working in a copy leaves your checkout
@@ -261,54 +246,48 @@ untouched.
 ```sh
 tmp=$(mktemp -d) && cp -r .claude-plugin hooks prompts "$tmp"
 rm -rf "$tmp/.claude-plugin/types"
-grep -v maxTokens "$tmp/hooks/tools/editor.ts" > "$tmp/editor.ts"
-mv "$tmp/editor.ts" "$tmp/hooks/tools/editor.ts"
+grep -v 'tools: \[\]' "$tmp/hooks/agents/editor.ts" > "$tmp/editor.ts"
+mv "$tmp/editor.ts" "$tmp/hooks/agents/editor.ts"
 claude plugin test "$tmp"                # Expect a failing test
 ```
 
-If no test fails, decide whether the change alters the tool's contract, and add a test if it does.
+If no test fails, decide whether the change alters the plugin's contract, and add a test if it does.
 Do not pin incidental details only to catch every possible change.
 
 ## End-to-end checks
 
-The tests do not show that the model uses the tool well, that the Editor prompt produces good
-edits, or that Claude Code loads the module in a real session. Check those with the working copy:
-
-```sh
-claude -p --model sonnet --plugin-dir . "Use the editor tool to revise this sentence for developers and paste its output verbatim: 'It is important to note that the plugin serves as a robust foundation.'"
-```
-
-Expect the revised text, followed by any notes after a `--- Editor notes ---` line. In an
-interactive session, the call appears in the transcript as one dim line, `Asking the Editor to
-revise a draft…` while it runs and `Asked the Editor to revise a draft.` once it has, with nothing
-drawn under it. A failed call reads `The Editor could not revise the draft.` with the error drawn
-under it as for any tool. The module's `ui.render` hooks draw those rows alone; the model still
-receives the task and the revision, and the transcript stores both whole.
-
-To check a subagent, ask the main model to delegate to it by name:
+The tests do not show that the model delegates well, that the prompts produce good results, or
+that Claude Code loads the module in a real session. Check those with the working copy. To check
+a subagent, ask the main model to delegate to it by name:
 
 ```sh
 claude -p --model sonnet --plugin-dir . "Delegate to the normal-swe:oracle agent with this brief: 'Without using any tools, reply with exactly the word PONG.' Then paste its answer verbatim."
 ```
 
-Expect `PONG`. Replace `oracle` with `librarian` or `gardener` to check the others. If an
+Expect `PONG`. Replace `oracle` with `librarian`, `gardener`, or `editor` to check the others. To
+check that the Editor revises a draft, give it one:
+
+```sh
+claude -p --model sonnet --plugin-dir . "Delegate to the normal-swe:editor agent with this brief: 'Revise this sentence for developers: It is important to note that the plugin serves as a robust foundation.' Then paste its answer verbatim."
+```
+
+Expect the revised text, followed by any notes after a `--- Editor notes ---` line. If an
 agent cannot be registered, the transcript shows a line starting with
 `normal-swe could not register the agent`, followed by the agent's name and the reason.
 
-If the tool is missing or fails, add `--debug` and search the newest log in `~/.claude/debug/`
+If a subagent is missing, add `--debug` and search the newest log in `~/.claude/debug/`
 for these lines:
 
 | Debug log line | Meaning |
 | --- | --- |
 | `Plugin "normal-swe" from --plugin-dir overrides installed version` | The working copy replaced the installed plugin. |
-| `hooks module normal-swe@inline loaded (...); events: session.start,tool.call,ui.render` | Claude Code loaded the module. |
+| `hooks module normal-swe@inline loaded (...); events: session.start` | Claude Code loaded the module. |
 | `$.agent.register (normal-swe): normal-swe:oracle listed` | The module registered a subagent, one line for each. |
-| `hooks module normal-swe@inline tool.call settled in <n>ms` | The tool ran. `<n>` includes the model call. |
 | `hooks modules not loaded: rollout flag (tengu_plugin_hooks_modules) is off` | This Claude Code version or account does not load hooks modules yet. |
 | `<plugin>: <event> bypassed by cc-plugin-sec-default (tier user)` | An organization security policy skipped the hook. |
 
 Hooks modules are an early-access feature behind a rollout flag. Without them, the plugin
-loads only its skills: the subagents and the Editor tool are registered by the hooks module. To check an older release, validate
+loads only its skills: the subagents are registered by the hooks module. To check an older release, validate
 the plugin manifest with that version:
 
 ```sh

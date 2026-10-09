@@ -6,14 +6,13 @@ Keep each skill in `skills/<skill-name>/SKILL.md`, with `name` and `description`
 in its YAML frontmatter. The name must match the directory. Keep supporting files
 inside the skill's directory and check that relative links resolve.
 
-`hooks/register.ts` registers the subagents and the Editor tool. Each subagent's
+`hooks/register.ts` registers the subagents. Each subagent's
 configuration is in `hooks/agents/<name>.ts`, and its system prompt is
 `prompts/<name>.md`. To add a subagent, create both files and add it to the `AGENTS`
-list in `hooks/register.ts`. The Editor tool's definition and handler are in
-`hooks/tools/editor.ts`, and its prompt is `prompts/editor.md`.
+list in `hooks/register.ts`.
 Follow the [skill-writing principles](skills/building-skills/SKILL.md#principles)
-when editing prompts. Update the README's skills, agents, and tools lists when adding,
-removing, or renaming a skill, agent, or tool.
+when editing prompts. Update the README's skills and agents lists when adding,
+removing, or renaming a skill or agent.
 
 The standalone main-agent prompt is in `extra/SYSTEM.md`. Its [README](extra/README.md)
 explains how to load it. Plugin installation does not load that file.
@@ -49,7 +48,7 @@ claude plugin test .
 ```
 
 [TESTING.md](TESTING.md) explains how the tests work, how to write them, and how to
-check the Editor tool end to end.
+check the subagents end to end.
 
 The plugin intentionally omits `version` so updates track Git commits. The
 missing-version warning is expected. The plugin check also warns that root
