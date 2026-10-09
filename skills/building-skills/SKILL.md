@@ -12,9 +12,6 @@ an existing skill.
 The `writing-prompts` skill covers writing model instructions that produce the intended
 behavior, including instructions within a skill.
 
-For a substantial prose-editing pass, use the Editor subagent when available. Supply
-the draft, intended capability, and constraints. Assess its edits against those requirements.
-
 ## Principles
 
 ### Skills are not commands

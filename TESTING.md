@@ -127,15 +127,15 @@ on('fs.read', ($, e) => {
   return name ? { value: `${name.toUpperCase()} PROMPT` } : { deny: `No such file: ${e.path}` }
 })
 
-expect(agents.get('editor')?.prompt).toBe('EDITOR PROMPT')
+expect(agents.get('oracle')?.prompt).toBe('ORACLE PROMPT')
 
 // Bad — records how the prompt is loaded instead of what the agent receives
 on('fs.read', ($, e) => {
   reads.push(e.path)
-  return { value: 'EDITOR PROMPT' }
+  return { value: 'ORACLE PROMPT' }
 })
 
-expect(reads).toEqual([expect.stringMatching(/\/prompts\/editor\.md$/)])
+expect(reads).toEqual([expect.stringMatching(/\/prompts\/oracle\.md$/)])
 ```
 
 Record calls to an operation only when the call itself is the behavior under test, as with the
@@ -148,7 +148,7 @@ behavior, not the code that exercises it, and include the condition when it dist
 
 ```ts
 // Good — facts about the plugin
-test('the four agents are offered with their own description, instructions, model, effort, and tools when a session starts', ...)
+test('the three agents are offered with their own description, instructions, model, effort, and tools when a session starts', ...)
 test('an agent that cannot be registered is reported without losing the other agents', ...)
 
 // Bad — names code and calls
@@ -158,7 +158,7 @@ test('catches a denied agent.register and calls ui.log', ...)
 
 Read together, the names should describe the plugin's hooks module:
 
-- The four agents are offered with their own description, instructions, model, effort, and tools
+- The three agents are offered with their own description, instructions, model, effort, and tools
   when a session starts.
 - An agent that cannot be registered is reported without losing the other agents.
 
@@ -192,7 +192,7 @@ test('an agent that cannot be registered is reported without losing the other ag
 
   await $.session.start({ cwd: '/work', surface: null, isInteractive: false })
 
-  expect(agents).toEqual(['librarian', 'gardener', 'editor'])
+  expect(agents).toEqual(['librarian', 'gardener'])
   expect(logged).toHaveLength(1)
   expect(logged[0]).toStartWith(`${AGENT_NOT_REGISTERED} oracle: `)
 })
@@ -205,12 +205,12 @@ registered separately from how each is configured:
 
 ```ts
 // Good — the set of agents and each field fail on their own
-expect([...agents.keys()].sort()).toEqual(['editor', 'gardener', 'librarian', 'oracle'])
-expect(agents.get('editor')?.model).toBe('opus')
-expect(agents.get('editor')?.tools).toEqual([])
+expect([...agents.keys()].sort()).toEqual(['gardener', 'librarian', 'oracle'])
+expect(agents.get('oracle')?.model).toBe('fable')
+expect(agents.get('oracle')?.tools).toEqual(['Read', 'Glob', 'Grep', 'Bash'])
 
 // Bad — one failure for any difference, and tools is not checked at all
-expect(agents.get('editor')).toEqual(expect.objectContaining({ model: 'opus', effort: 'low' }))
+expect(agents.get('oracle')).toEqual(expect.objectContaining({ model: 'fable', effort: 'high' }))
 ```
 
 Write each test's stand-ins and assertions in the test rather than in shared helpers. Small
@@ -232,8 +232,8 @@ expect(logged[0]).toContain('could not register')
 Coverage shows which lines ran, not whether the tests would notice a plausible mistake. Check for
 mistakes directly. For the subagents:
 
-- Removing `tools: []` from the Editor would give it every tool the parent has, including Edit and
-  Bash. A test that checks only `model` and `effort` misses it.
+- Removing the Oracle's `tools` restriction would give it every tool the parent has, including
+  Edit and Write. A test that checks only `model` and `effort` misses it.
 - Moving the `try` outside the loop would let one refused agent cost the others. Only a test with
   a refused agent catches it.
 - Reading the wrong prompt path would leave an agent without its instructions. The path-checking
@@ -246,8 +246,8 @@ untouched.
 ```sh
 tmp=$(mktemp -d) && cp -r .claude-plugin hooks prompts "$tmp"
 rm -rf "$tmp/.claude-plugin/types"
-grep -v 'tools: \[\]' "$tmp/hooks/agents/editor.ts" > "$tmp/editor.ts"
-mv "$tmp/editor.ts" "$tmp/hooks/agents/editor.ts"
+grep -v '^  tools:' "$tmp/hooks/agents/oracle.ts" > "$tmp/oracle.ts"
+mv "$tmp/oracle.ts" "$tmp/hooks/agents/oracle.ts"
 claude plugin test "$tmp"                # Expect a failing test
 ```
 
@@ -264,14 +264,7 @@ a subagent, ask the main model to delegate to it by name:
 claude -p --model sonnet --plugin-dir . "Delegate to the normal-swe:oracle agent with this brief: 'Without using any tools, reply with exactly the word PONG.' Then paste its answer verbatim."
 ```
 
-Expect `PONG`. Replace `oracle` with `librarian`, `gardener`, or `editor` to check the others. To
-check that the Editor revises a draft, give it one:
-
-```sh
-claude -p --model sonnet --plugin-dir . "Delegate to the normal-swe:editor agent with this brief: 'Revise this sentence for developers: It is important to note that the plugin serves as a robust foundation.' Then paste its answer verbatim."
-```
-
-Expect the revised text, followed by any notes after a `--- Editor notes ---` line. If an
+Expect `PONG`. Replace `oracle` with `librarian` or `gardener` to check the others. If an
 agent cannot be registered, the transcript shows a line starting with
 `normal-swe could not register the agent`, followed by the agent's name and the reason.
 

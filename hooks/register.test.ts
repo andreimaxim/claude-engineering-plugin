@@ -1,9 +1,9 @@
 import { expect, test } from 'claude-code/testing'
 import { AGENT_NOT_REGISTERED } from './register'
 
-const PROMPT_PATH = /\/prompts\/(editor|oracle|librarian|gardener)\.md$/
+const PROMPT_PATH = /\/prompts\/(oracle|librarian|gardener)\.md$/
 
-test('the four agents are offered with their own description, instructions, model, effort, and tools when a session starts', async ($, on) => {
+test('the three agents are offered with their own description, instructions, model, effort, and tools when a session starts', async ($, on) => {
   const agents = new Map<string, Record<string, unknown>>()
 
   on('agent.register', ($, e) => {
@@ -18,7 +18,7 @@ test('the four agents are offered with their own description, instructions, mode
 
   await $.session.start({ cwd: '/work', surface: null, isInteractive: false })
 
-  expect([...agents.keys()].sort()).toEqual(['editor', 'gardener', 'librarian', 'oracle'])
+  expect([...agents.keys()].sort()).toEqual(['gardener', 'librarian', 'oracle'])
 
   expect(agents.get('oracle')?.description).toBe(
     'Read-only expert advisor for focused code reviews, difficult debugging, and consequential architecture questions. Use when explicitly requested or when direct investigation leaves a specific high-impact question unresolved.',
@@ -59,14 +59,6 @@ test('the four agents are offered with their own description, instructions, mode
     'WebSearch',
     'WebFetch',
   ])
-
-  expect(agents.get('editor')?.description).toBe(
-    'Edits supplied drafts for clarity and flow while preserving meaning. Use it to improve sentence and paragraph structure and remove AI writing patterns in documentation, model instructions, and other substantial text. Editor has no tools and cannot read files, so include the full draft text, intended audience, tone, and constraints in the brief. Returns the revised text, followed by any notes after a line containing `--- Editor notes ---`. The caller applies the edits.',
-  )
-  expect(agents.get('editor')?.prompt).toBe('EDITOR PROMPT')
-  expect(agents.get('editor')?.model).toBe('opus')
-  expect(agents.get('editor')?.effort).toBe('low')
-  expect(agents.get('editor')?.tools).toEqual([])
 })
 
 test('an agent that cannot be registered is reported without losing the other agents', async ($, on) => {
@@ -89,7 +81,7 @@ test('an agent that cannot be registered is reported without losing the other ag
 
   await $.session.start({ cwd: '/work', surface: null, isInteractive: false })
 
-  expect(agents).toEqual(['librarian', 'gardener', 'editor'])
+  expect(agents).toEqual(['librarian', 'gardener'])
   expect(logged).toHaveLength(1)
   expect(logged[0]).toStartWith(`${AGENT_NOT_REGISTERED} oracle: `)
 })

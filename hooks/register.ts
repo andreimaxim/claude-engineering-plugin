@@ -1,12 +1,11 @@
 import type { Register } from 'claude-code'
-import { editor } from './agents/editor'
 import { gardener } from './agents/gardener'
 import { librarian } from './agents/librarian'
 import { oracle } from './agents/oracle'
 
 export const AGENT_NOT_REGISTERED = 'normal-swe could not register the agent'
 
-const AGENTS = [oracle, librarian, gardener, editor]
+const AGENTS = [oracle, librarian, gardener]
 
 export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {

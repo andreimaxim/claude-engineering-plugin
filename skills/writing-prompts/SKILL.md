@@ -17,8 +17,8 @@ The goal is behavior, not prose. A good instruction reliably produces the intend
 the whole range of situations it covers, using only the text needed to achieve that result.
 Prioritize clarity for the model over other writing choices.
 
-For a substantial prose-editing pass, use the Editor subagent when available. Supply the
-draft, intended behavior, and constraints. Assess its edits against those requirements.
+The `writing-for-readers` skill covers prose composition and revision. Apply its guidance
+without changing the intended behavior, scope, or instruction strength.
 
 ## Principles
 

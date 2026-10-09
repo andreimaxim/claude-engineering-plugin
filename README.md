@@ -1,6 +1,6 @@
 # Normal SWE plugin
 
-A Claude Code plugin with eight skills and four subagents for software development.
+A Claude Code plugin with eight skills and three subagents for software development.
 It is based on agents and skills from
 [Amp](https://github.com/ampcode/official-plugins),
 [pstack](https://github.com/cursor/plugins/tree/main/pstack),
@@ -71,11 +71,11 @@ use `implementing`, with the Oracle subagent reviewing the integrated result.
 ### Write for readers
 
 Use `writing-for-readers` for documentation, plans, ticket solutions, PR and commit
-descriptions, release notes, emails, and announcements. The skill starts from the reader's
-needs. When the Editor subagent is available, it revises the structure and wording of
-substantial drafts. The main agent then decides which revisions to accept and applies them.
-You can also use the Editor subagent directly for model instructions and other substantial
-drafts.
+descriptions, release notes, emails, announcements, articles, and posts. The main agent
+writes and revises directly, using the skill's guidance on composition and revision.
+The skill starts from the reader's needs and preserves meaning, uncertainty, and voice.
+For model instructions, use `writing-prompts`, which applies the prose guidance without
+changing the intended behavior or instruction strength.
 
 ### Other tasks
 
@@ -100,8 +100,8 @@ drafts.
   systems work and investigates the reasons behind design decisions. Inspired by
   HumanLayer's [show-me](https://github.com/humanlayer/skills/blob/main/plugins/show-me/skills/show-me/SKILL.md) skill.
 - [writing-for-readers](skills/writing-for-readers/SKILL.md): writes documentation,
-  messages, and other text for readers outside the conversation. When the Editor subagent
-  is available, the skill sends it substantial drafts to revise for clarity and flow.
+  messages, and other prose for readers outside the conversation. Covers composition,
+  organization, and revision while preserving meaning and authorial voice.
 - [building-skills](skills/building-skills/SKILL.md): writes and revises skill prompts,
   including activation descriptions, instructions, and references.
 - [writing-prompts](skills/writing-prompts/SKILL.md): writes and revises model
@@ -129,10 +129,6 @@ not execute the code it researches. Inspired by
 concrete improvements based on design analysis, refactoring techniques, and available
 tools. It may run disposable experiments to test assumptions or compare designs. The
 main agent evaluates and implements the proposals.
-
-[Editor](prompts/editor.md) (Opus low) improves a draft's clarity and flow while
-preserving its meaning. It can rebuild sentences, reorder paragraphs, and remove AI
-writing patterns. It has no tools and returns the revision for the main agent to apply.
 
 ## Extras
 
